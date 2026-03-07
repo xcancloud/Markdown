@@ -1,0 +1,28 @@
+/* GitHub 风格主题 */
+.markdown-theme-github {
+  --md-bg: #ffffff;
+  --md-text: #1f2328;
+  --md-text-secondary: #656d76;
+  --md-border: #d0d7de;
+  --md-link: #0969da;
+  --md-code-bg: #f6f8fa;
+  --md-blockquote-border: #d0d7de;
+  --md-blockquote-text: #656d76;
+  --md-table-border: #d0d7de;
+  --md-table-row-alt: #f6f8fa;
+  --md-mark-bg: #fff8c5;
+}
+
+.markdown-theme-github-dark {
+  --md-bg: #0d1117;
+  --md-text: #e6edf3;
+  --md-text-secondary: #8b949e;
+  --md-border: #30363d;
+  --md-link: #58a6ff;
+  --md-code-bg: #f0f0f0;
+  --md-blockquote-border: #30363d;
+  --md-blockquote-text: #8b949e;
+  --md-table-border: #30363d;
+  --md-table-row-alt: #161b22;
+  --md-mark-bg: rgba(187, 128, 9, 0.15);
+}

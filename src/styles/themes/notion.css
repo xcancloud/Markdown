@@ -1,0 +1,17 @@
+/* Notion 风格主题 */
+.markdown-theme-notion {
+  --md-bg: #ffffff;
+  --md-text: #37352f;
+  --md-text-secondary: #9b9a97;
+  --md-border: #e9e9e7;
+  --md-link: #2eaadc;
+  --md-code-bg: #f7f6f3;
+  --md-blockquote-border: #e9e9e7;
+  --md-blockquote-text: #9b9a97;
+  --md-table-border: #e9e9e7;
+  --md-table-row-alt: #f7f6f3;
+  --md-mark-bg: #fdecc8;
+  --md-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica,
+    'Apple Color Emoji', Arial, sans-serif, 'Segoe UI Emoji';
+  --md-line-height: 1.5;
+}

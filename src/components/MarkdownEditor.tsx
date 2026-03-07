@@ -1,0 +1,556 @@
+import React, { useRef, useEffect, useCallback, useState, memo } from 'react';
+import { EditorState, type Extension } from '@codemirror/state';
+import {
+  EditorView,
+  keymap,
+  drawSelection,
+  highlightActiveLine,
+} from '@codemirror/view';
+import { defaultKeymap, history, historyKeymap, undo, redo } from '@codemirror/commands';
+import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
+import { languages } from '@codemirror/language-data';
+import {
+  syntaxHighlighting,
+  defaultHighlightStyle,
+} from '@codemirror/language';
+import { closeBrackets } from '@codemirror/autocomplete';
+import { MarkdownRenderer, type MarkdownRendererProps } from './MarkdownRenderer';
+import { ToolbarIcon } from './ToolbarIcon';
+import { useTheme, useLocale } from '../context/MarkdownProvider';
+
+// ============================================================
+// Props
+// ============================================================
+export interface MarkdownEditorProps
+  extends Omit<MarkdownRendererProps, 'source'> {
+  /** 初始内容 */
+  initialValue?: string;
+  /** 受控值 */
+  value?: string;
+  /** 内容变化回调 */
+  onChange?: (value: string) => void;
+  /** 布局模式 */
+  layout?: LayoutMode;
+  /** 编辑器最小高度 */
+  minHeight?: string;
+  /** 编辑器最大高度 */
+  maxHeight?: string;
+  /** 编辑器额外扩展 */
+  extensions?: Extension[];
+  /** 工具栏配置 */
+  toolbar?: ToolbarConfig;
+  /** 是否只读 */
+  readOnly?: boolean;
+  /** 是否支持图片粘贴上传 */
+  onImageUpload?: (file: File) => Promise<string>;
+  /** 自动保存回调 */
+  onAutoSave?: (value: string) => void;
+  /** 自动保存间隔 (ms) */
+  autoSaveInterval?: number;
+  /** 快捷键映射 */
+  shortcuts?: ShortcutMap;
+}
+
+interface ToolbarConfig {
+  show?: boolean;
+  items?: ToolbarItem[];
+}
+
+export type LayoutMode = 'split' | 'tabs' | 'editor-only' | 'preview-only';
+
+export type ToolbarItem =
+  | 'bold'
+  | 'italic'
+  | 'strikethrough'
+  | 'heading'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'quote'
+  | 'code'
+  | 'codeblock'
+  | 'link'
+  | 'image'
+  | 'table'
+  | 'ul'
+  | 'ol'
+  | 'task'
+  | 'hr'
+  | 'math'
+  | '|'
+  | 'undo'
+  | 'redo'
+  | 'preview'
+  | 'fullscreen'
+  | 'layout';
+
+type ShortcutMap = Record<string, (view: EditorView) => boolean>;
+
+const DEFAULT_TOOLBAR: ToolbarItem[] = [
+  'bold',
+  'italic',
+  'strikethrough',
+  '|',
+  'heading',
+  'quote',
+  '|',
+  'code',
+  'codeblock',
+  '|',
+  'link',
+  'image',
+  'table',
+  '|',
+  'ul',
+  'ol',
+  'task',
+  '|',
+  'math',
+  'hr',
+  '|',
+  'undo',
+  'redo',
+  '|',
+  'layout',
+  'fullscreen',
+];
+
+const HEADING_LEVELS: ToolbarItem[] = ['h1', 'h2', 'h3', 'h4', 'h5'];
+
+const LAYOUT_CYCLE: LayoutMode[] = ['preview-only', 'editor-only', 'split'];
+
+// ============================================================
+// 编辑器工具栏操作
+// ============================================================
+const TOOLBAR_ACTIONS: Record<string, (view: EditorView) => void> = {
+  bold: (view) => wrapSelection(view, '**', '**'),
+  italic: (view) => wrapSelection(view, '*', '*'),
+  strikethrough: (view) => wrapSelection(view, '~~', '~~'),
+  heading: (view) => prependLine(view, '## '),
+  h1: (view) => setHeadingLevel(view, 1),
+  h2: (view) => setHeadingLevel(view, 2),
+  h3: (view) => setHeadingLevel(view, 3),
+  h4: (view) => setHeadingLevel(view, 4),
+  h5: (view) => setHeadingLevel(view, 5),
+  quote: (view) => prependLine(view, '> '),
+  code: (view) => wrapSelection(view, '\n```\n', '\n```\n'),
+  codeblock: (view) => wrapSelection(view, '\n```\n', '\n```\n'),
+  link: (view) => wrapSelection(view, '[', '](url)'),
+  image: (view) => insertText(view, '![alt](url)'),
+  table: (view) =>
+    insertText(
+      view,
+      '\n| Column 1 | Column 2 | Column 3 |\n' +
+        '| -------- | -------- | -------- |\n' +
+        '| Cell 1   | Cell 2   | Cell 3   |\n',
+    ),
+  ul: (view) => prependLine(view, '- '),
+  ol: (view) => prependLine(view, '1. '),
+  task: (view) => prependLine(view, '- [ ] '),
+  hr: (view) => insertText(view, '\n---\n'),
+  math: (view) => wrapSelection(view, '$', '$'),
+};
+
+// ============================================================
+// 主编辑器组件
+// ============================================================
+export const MarkdownEditor = memo<MarkdownEditorProps>(
+  ({
+    initialValue = '',
+    value,
+    onChange,
+    layout: layoutProp = 'preview-only',
+    minHeight = '400px',
+    maxHeight = '800px',
+    extensions: userExtensions = [],
+    toolbar = { show: true, items: DEFAULT_TOOLBAR },
+    readOnly = false,
+    onImageUpload,
+    onAutoSave,
+    autoSaveInterval = 30000,
+    ...rendererProps
+  }) => {
+    const editorContainerRef = useRef<HTMLDivElement>(null);
+    const viewRef = useRef<EditorView | null>(null);
+    const [content, setContent] = useState(value ?? initialValue);
+    const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('editor');
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [currentLayout, setCurrentLayout] = useState<LayoutMode>(layoutProp);
+    const [headingMenuOpen, setHeadingMenuOpen] = useState(false);
+    const headingBtnRef = useRef<HTMLDivElement>(null);
+    const { resolvedTheme } = useTheme();
+    const { messages } = useLocale();
+    const editorRootRef = useRef<HTMLDivElement>(null);
+
+    // 受控 value 同步
+    useEffect(() => {
+      if (value !== undefined && value !== content) {
+        setContent(value);
+        if (viewRef.current) {
+          const currentValue = viewRef.current.state.doc.toString();
+          if (currentValue !== value) {
+            viewRef.current.dispatch({
+              changes: {
+                from: 0,
+                to: currentValue.length,
+                insert: value,
+              },
+            });
+          }
+        }
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value]);
+
+    // 自动保存
+    useEffect(() => {
+      if (!onAutoSave || !autoSaveInterval) return;
+      const timer = setInterval(() => onAutoSave(content), autoSaveInterval);
+      return () => clearInterval(timer);
+    }, [content, onAutoSave, autoSaveInterval]);
+
+    // ========================================
+    // 初始化 CodeMirror
+    // ========================================
+    useEffect(() => {
+      if (!editorContainerRef.current) return;
+
+      const updateListener = EditorView.updateListener.of((update) => {
+        if (update.docChanged) {
+          const newValue = update.state.doc.toString();
+          setContent(newValue);
+          onChange?.(newValue);
+        }
+      });
+
+      // 图片粘贴处理
+      const pasteHandler = EditorView.domEventHandlers({
+        paste: (event, view) => {
+          if (!onImageUpload) return false;
+          const items = event.clipboardData?.items;
+          if (!items) return false;
+
+          for (const item of items) {
+            if (item.type.startsWith('image/')) {
+              event.preventDefault();
+              const file = item.getAsFile();
+              if (file) {
+                const placeholder = '![Uploading...]()\n';
+                const pos = view.state.selection.main.head;
+                view.dispatch({
+                  changes: { from: pos, insert: placeholder },
+                });
+
+                onImageUpload(file).then((url) => {
+                  const safeUrl = url.replace(/[()]/g, encodeURIComponent);
+                  const currentDoc = view.state.doc.toString();
+                  const placeholderIndex = currentDoc.indexOf(placeholder);
+                  if (placeholderIndex >= 0) {
+                    view.dispatch({
+                      changes: {
+                        from: placeholderIndex,
+                        to: placeholderIndex + placeholder.length,
+                        insert: `![image](${safeUrl})\n`,
+                      },
+                    });
+                  }
+                });
+              }
+              return true;
+            }
+          }
+          return false;
+        },
+
+        // 拖拽图片
+        drop: (event, view) => {
+          if (!onImageUpload) return false;
+          const files = event.dataTransfer?.files;
+          if (!files) return false;
+
+          for (const file of files) {
+            if (file.type.startsWith('image/')) {
+              event.preventDefault();
+              onImageUpload(file).then((url) => {
+                const safeUrl = url.replace(/[()]/g, encodeURIComponent);
+                const pos =
+                  view.posAtCoords({
+                    x: event.clientX,
+                    y: event.clientY,
+                  }) ?? view.state.selection.main.head;
+                view.dispatch({
+                  changes: {
+                    from: pos,
+                    insert: `![image](${safeUrl})\n`,
+                  },
+                });
+              });
+              return true;
+            }
+          }
+          return false;
+        },
+      });
+
+      const state = EditorState.create({
+        doc: content,
+        extensions: [
+          markdown({ base: markdownLanguage, codeLanguages: languages }),
+          syntaxHighlighting(defaultHighlightStyle),
+          history(),
+          drawSelection(),
+          highlightActiveLine(),
+          closeBrackets(),
+          keymap.of([...defaultKeymap, ...historyKeymap]),
+          updateListener,
+          pasteHandler,
+          EditorView.lineWrapping,
+          EditorState.readOnly.of(readOnly),
+          EditorView.theme({
+            '&': { minHeight, maxHeight },
+            '.cm-scroller': { overflow: 'auto' },
+          }),
+          ...userExtensions,
+        ],
+      });
+
+      const view = new EditorView({
+        state,
+        parent: editorContainerRef.current,
+      });
+
+      viewRef.current = view;
+
+      return () => {
+        view.destroy();
+        viewRef.current = null;
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // ========================================
+    // 工具栏按钮点击
+    // ========================================
+    const handleToolbarAction = useCallback((action: ToolbarItem) => {
+      const view = viewRef.current;
+
+      if (action === 'undo') {
+        if (view) { undo(view); view.focus(); }
+        return;
+      }
+      if (action === 'redo') {
+        if (view) { redo(view); view.focus(); }
+        return;
+      }
+      if (action === 'preview') {
+        setActiveTab((t) => (t === 'preview' ? 'editor' : 'preview'));
+        return;
+      }
+      if (action === 'fullscreen') {
+        setIsFullscreen((f) => !f);
+        return;
+      }
+      if (action === 'layout') {
+        setCurrentLayout((prev) => {
+          const idx = LAYOUT_CYCLE.indexOf(prev);
+          return LAYOUT_CYCLE[(idx + 1) % LAYOUT_CYCLE.length];
+        });
+        return;
+      }
+      if (action === 'heading') {
+        setHeadingMenuOpen((o) => !o);
+        return;
+      }
+
+      // Close heading menu on any other action
+      setHeadingMenuOpen(false);
+
+      if (!view) return;
+      const fn = TOOLBAR_ACTIONS[action];
+      if (fn) fn(view);
+      view.focus();
+    }, []);
+
+    // Close heading dropdown on outside click
+    useEffect(() => {
+      if (!headingMenuOpen) return;
+      const handler = (e: MouseEvent) => {
+        if (headingBtnRef.current && !headingBtnRef.current.contains(e.target as Node)) {
+          setHeadingMenuOpen(false);
+        }
+      };
+      document.addEventListener('mousedown', handler);
+      return () => document.removeEventListener('mousedown', handler);
+    }, [headingMenuOpen]);
+
+    // Sync prop layout changes
+    useEffect(() => {
+      setCurrentLayout(layoutProp);
+    }, [layoutProp]);
+
+    // ========================================
+    // 渲染
+    // ========================================
+    const layout = currentLayout;
+    const showEditor =
+      layout === 'split' ||
+      layout === 'editor-only' ||
+      (layout === 'tabs' && activeTab === 'editor');
+    const showPreview =
+      layout === 'split' ||
+      layout === 'preview-only' ||
+      (layout === 'tabs' && activeTab === 'preview');
+
+    const effectiveTheme = rendererProps.theme
+      ? rendererProps.theme === 'auto'
+        ? resolvedTheme
+        : rendererProps.theme
+      : resolvedTheme;
+
+    return (
+      <div
+        ref={editorRootRef}
+        className={`markdown-editor layout-${layout} markdown-theme-${effectiveTheme}${isFullscreen ? ' markdown-editor-fullscreen' : ''}${rendererProps.className ? ` ${rendererProps.className}` : ''}`}
+      >
+        {/* 工具栏 */}
+        {toolbar.show && (
+          <div className="markdown-toolbar" role="toolbar">
+            {/* 左侧：布局切换（三个模式按钮同时展示） */}
+            <div className="toolbar-left">
+              {LAYOUT_CYCLE.map((mode) => (
+                <button
+                  key={mode}
+                  className={`toolbar-btn toolbar-layout${currentLayout === mode ? ' active' : ''}`}
+                  onClick={() => setCurrentLayout(mode)}
+                  title={messages.toolbar[`layout_${mode}` as keyof typeof messages.toolbar] ?? mode}
+                  aria-label={mode}
+                  aria-pressed={currentLayout === mode}
+                >
+                  <ToolbarIcon name={`layout-${mode}`} />
+                </button>
+              ))}
+            </div>
+            {/* 右侧：其他工具按钮 */}
+            <div className="toolbar-right">
+              {(toolbar.items ?? DEFAULT_TOOLBAR).filter((i) => i !== 'layout').map((item, index) =>
+                item === '|' ? (
+                  <span key={index} className="toolbar-separator" />
+                ) : item === 'heading' ? (
+                  <div key={item} className="toolbar-heading-group" ref={headingBtnRef}>
+                    <button
+                      className={`toolbar-btn toolbar-heading${headingMenuOpen ? ' active' : ''}`}
+                      onClick={() => handleToolbarAction(item)}
+                      title={messages.toolbar.heading}
+                      aria-label={messages.toolbar.heading}
+                      aria-expanded={headingMenuOpen}
+                      aria-haspopup="true"
+                    >
+                      <ToolbarIcon name="heading" />
+                      <span className="toolbar-caret">▾</span>
+                    </button>
+                    {headingMenuOpen && (
+                      <div className="toolbar-dropdown" role="menu">
+                        {HEADING_LEVELS.map((h) => (
+                          <button
+                            key={h}
+                            className="toolbar-dropdown-item"
+                            role="menuitem"
+                            onClick={() => {
+                              handleToolbarAction(h);
+                              setHeadingMenuOpen(false);
+                            }}
+                          >
+                            <ToolbarIcon name={h} />
+                            <span>{messages.toolbar[h as keyof typeof messages.toolbar] ?? h.toUpperCase()}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    key={item}
+                    className={`toolbar-btn toolbar-${item}`}
+                    onClick={() => handleToolbarAction(item)}
+                    title={messages.toolbar[item as keyof typeof messages.toolbar] ?? item}
+                    aria-label={messages.toolbar[item as keyof typeof messages.toolbar] ?? item}
+                  >
+                    <ToolbarIcon name={item} />
+                  </button>
+                ),
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 编辑区 & 预览区 */}
+        <div className="markdown-editor-panels">
+          <div
+            className="markdown-editor-panel"
+            ref={editorContainerRef}
+            style={showEditor ? undefined : { display: 'none' }}
+          />
+
+          {showPreview && (
+            <div className="markdown-preview-panel">
+              <MarkdownRenderer source={content} {...rendererProps} />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  },
+);
+
+MarkdownEditor.displayName = 'MarkdownEditor';
+
+// ============================================================
+// 辅助函数
+// ============================================================
+function wrapSelection(view: EditorView, before: string, after: string) {
+  const { from, to } = view.state.selection.main;
+  const selected = view.state.sliceDoc(from, to);
+  view.dispatch({
+    changes: {
+      from,
+      to,
+      insert: `${before}${selected || 'text'}${after}`,
+    },
+    selection: {
+      anchor: from + before.length,
+      head: from + before.length + (selected || 'text').length,
+    },
+  });
+}
+
+function prependLine(view: EditorView, prefix: string) {
+  const { from } = view.state.selection.main;
+  const line = view.state.doc.lineAt(from);
+  view.dispatch({
+    changes: { from: line.from, insert: prefix },
+  });
+}
+
+function setHeadingLevel(view: EditorView, level: number) {
+  const { from } = view.state.selection.main;
+  const line = view.state.doc.lineAt(from);
+  const text = line.text;
+  // Remove existing heading prefix
+  const stripped = text.replace(/^#{1,6}\s*/, '');
+  const prefix = '#'.repeat(level) + ' ';
+  view.dispatch({
+    changes: { from: line.from, to: line.to, insert: prefix + stripped },
+  });
+}
+
+function insertText(view: EditorView, text: string) {
+  const { from } = view.state.selection.main;
+  view.dispatch({
+    changes: { from, insert: text },
+    selection: { anchor: from + text.length },
+  });
+}
+
+export default MarkdownEditor;

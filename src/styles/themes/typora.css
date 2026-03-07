@@ -1,0 +1,17 @@
+/* Typora 风格主题 */
+.markdown-theme-typora {
+  --md-bg: #ffffff;
+  --md-text: #333333;
+  --md-text-secondary: #999999;
+  --md-border: #e7e7e7;
+  --md-link: #4183c4;
+  --md-code-bg: #f8f8f8;
+  --md-blockquote-border: #dfe2e5;
+  --md-blockquote-text: #6a737d;
+  --md-table-border: #dfe2e5;
+  --md-table-row-alt: #f6f8fa;
+  --md-mark-bg: #fff3cd;
+  --md-font-body: 'Open Sans', 'Clear Sans', 'Helvetica Neue', Helvetica,
+    Arial, sans-serif;
+  --md-line-height: 1.6;
+}
