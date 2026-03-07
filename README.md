@@ -9,6 +9,8 @@
 
 > Production-grade, extensible, high-performance Markdown rendering & editing component for React.
 
+<img alt="preview" src="https://github.com/user-attachments/assets/fd0fa1d5-334f-4fd6-9902-212159a543ab" />
+
 ---
 
 ## Features
