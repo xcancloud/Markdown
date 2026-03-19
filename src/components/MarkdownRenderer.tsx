@@ -61,6 +61,8 @@ const LANG_EXT_MAP: Record<string, string> = {
   markdown: 'md', latex: 'tex', graphql: 'graphql',
 };
 
+const SCROLL_THRESHOLD = 80;
+
 function downloadCode(code: string, lang: string) {
   const ext = LANG_EXT_MAP[lang] || 'txt';
   const blob = new Blob([code], { type: 'text/plain' });
@@ -87,6 +89,8 @@ function showHtmlPreview(code: string, closeLabel: string) {
 
   const iframe = document.createElement('iframe');
   iframe.className = 'code-preview-iframe';
+  // allow-scripts enables JS execution; allow-same-origin is intentionally
+  // omitted so the sandboxed content cannot access the parent document.
   iframe.setAttribute('sandbox', 'allow-scripts');
   iframe.srcdoc = code;
 
@@ -266,7 +270,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
     useEffect(() => {
       if (streaming && containerRef.current) {
         const el = containerRef.current;
-        const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+        const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_THRESHOLD;
         if (nearBottom) {
           el.scrollTop = el.scrollHeight;
         }

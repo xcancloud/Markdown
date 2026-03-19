@@ -237,8 +237,10 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
           if (maxLength !== undefined && newValue.length > maxLength) {
             newValue = newValue.slice(0, maxLength);
             isTruncatingRef.current = true;
+            const cursor = Math.min(update.state.selection.main.head, maxLength);
             update.view.dispatch({
               changes: { from: maxLength, to: update.state.doc.length },
+              selection: { anchor: cursor },
             });
           }
           setContent(newValue);
