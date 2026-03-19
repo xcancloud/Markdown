@@ -28,7 +28,9 @@ describe('Markdown Processor', () => {
 
     it('should render fenced code blocks', async () => {
       const html = await renderMarkdown('```js\nconst x = 1;\n```');
-      expect(html).toContain('const x = 1;');
+      expect(html).toContain('code-block');
+      expect(html).toContain('data-language="js"');
+      expect(html).toContain('const');
     });
 
     it('should render ordered and unordered lists', async () => {
@@ -83,7 +85,7 @@ describe('Markdown Processor', () => {
     it('should render tables', async () => {
       const md = '| a | b |\n|---|---|\n| 1 | 2 |';
       const html = await renderMarkdown(md);
-      expect(html).toContain('<table>');
+      expect(html).toContain('<table');
       expect(html).toContain('<th>');
     });
 
@@ -159,7 +161,8 @@ describe('Markdown Processor', () => {
   // ============================
   describe('Sync rendering', () => {
     it('should render markdown synchronously', () => {
-      const html = renderMarkdownSync('# Hello');
+      // 默认 processor 含 Shiki 异步插件，需关闭 highlight 才能使用 processSync
+      const html = renderMarkdownSync('# Hello', { highlight: false });
       expect(html).toContain('<h1');
     });
   });

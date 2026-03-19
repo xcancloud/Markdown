@@ -43,6 +43,8 @@ export interface ProcessorOptions {
   sanitizeSchema?: typeof defaultSchema;
   /** 代码高亮主题 */
   codeTheme?: string;
+  /** 是否启用代码高亮（关闭后可支持 processSync 同步渲染） */
+  highlight?: boolean;
   /** 是否允许原始 HTML */
   allowHtml?: boolean;
   /** 自定义 remark 插件 */
@@ -64,6 +66,7 @@ export function createProcessor(options: ProcessorOptions = {}) {
     sanitize = true,
     allowHtml = true,
     codeTheme = 'github-dark',
+    highlight = true,
     remarkPlugins = [],
     rehypePlugins = [],
   } = options;
@@ -116,10 +119,11 @@ export function createProcessor(options: ProcessorOptions = {}) {
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings, { behavior: 'wrap' });
 
-  // 代码高亮（Shiki 输出 raw 节点，需在 sanitize 之后运行）
-  processor = processor
-    .use(rehypeHighlightCode, { theme: codeTheme })
-    .use(rehypeA11y);
+  // 代码高亮（Shiki 输出 raw 节点，需在 sanitize 之后运行，异步插件）
+  if (highlight) {
+    processor = processor.use(rehypeHighlightCode, { theme: codeTheme });
+  }
+  processor = processor.use(rehypeA11y);
 
   // 用户自定义 rehype 插件
   for (const plugin of rehypePlugins) {
