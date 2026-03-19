@@ -76,6 +76,50 @@ function downloadCode(code: string, lang: string) {
   URL.revokeObjectURL(url);
 }
 
+function downloadMermaidSvg(containerEl: Element) {
+  const svg = containerEl.querySelector('svg');
+  if (!svg) return;
+  const svgClone = svg.cloneNode(true) as SVGElement;
+  const svgString = new XMLSerializer().serializeToString(svgClone);
+  const blob = new Blob([svgString], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mermaid-diagram.svg';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function showMermaidPreview(containerEl: Element, closeLabel: string) {
+  const overlay = document.createElement('div');
+  overlay.className = 'mermaid-preview-modal';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'mermaid-preview-close';
+  closeBtn.textContent = closeLabel;
+  closeBtn.addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+
+  const content = document.createElement('div');
+  content.className = 'mermaid-preview-content';
+  const inner = containerEl.querySelector('svg') ?? containerEl.querySelector('.mermaid-error');
+  if (inner) {
+    content.appendChild(inner.cloneNode(true));
+  }
+
+  overlay.appendChild(closeBtn);
+  overlay.appendChild(content);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) document.body.removeChild(overlay);
+  });
+
+  document.body.appendChild(overlay);
+}
+
 function showHtmlPreview(code: string, closeLabel: string) {
   const overlay = document.createElement('div');
   overlay.className = 'code-preview-modal';
@@ -191,7 +235,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
     }, [debouncedSource, processor]);
 
     // ========================================
-    // Mermaid 图表后处理
+    // Mermaid 图表后处理（渲染 + 下载/弹窗按钮注入）
     // ========================================
     useEffect(() => {
       if (!containerRef.current) return;
@@ -206,8 +250,32 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
         el.setAttribute('data-rendered', 'true');
         const svg = await renderMermaidDiagram(code, `mermaid-${index}`);
         el.innerHTML = svg;
+
+        // 注入下载、弹窗按钮（流式中不注入，避免闪烁）
+        if (streaming || el.querySelector('.mermaid-actions')) return;
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'mermaid-actions';
+
+        if (el.querySelector('svg')) {
+          const downloadBtn = document.createElement('button');
+          downloadBtn.className = 'download-button';
+          downloadBtn.textContent = messages.renderer.download;
+          downloadBtn.addEventListener('click', () => downloadMermaidSvg(el));
+          actionsDiv.appendChild(downloadBtn);
+        }
+
+        const previewBtn = document.createElement('button');
+        previewBtn.className = 'preview-button';
+        previewBtn.textContent = messages.renderer.preview;
+        previewBtn.addEventListener('click', () => {
+          showMermaidPreview(el, messages.renderer.closePreview);
+        });
+        actionsDiv.appendChild(previewBtn);
+
+        el.insertBefore(actionsDiv, el.firstChild);
       });
-    }, [html]);
+    }, [html, streaming, messages.renderer]);
 
     // ========================================
     // 代码块按钮注入 (复制 / 下载 / 预览)
