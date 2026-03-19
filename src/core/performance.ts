@@ -1,6 +1,9 @@
 // ============================================================
 // 1. 增量渲染 — 使用 Web Worker
 // ============================================================
+// 使用 ?worker&inline 内联 worker，避免库被消费时构建无法解析独立的 worker 文件
+import RendererWorker from './worker-renderer.ts?worker&inline';
+
 export class MarkdownWorkerRenderer {
   private worker: Worker;
   private requestId = 0;
@@ -13,10 +16,7 @@ export class MarkdownWorkerRenderer {
   >();
 
   constructor() {
-    this.worker = new Worker(
-      new URL('./worker-renderer.ts', import.meta.url),
-      { type: 'module' },
-    );
+    this.worker = new RendererWorker();
 
     this.worker.onmessage = (event) => {
       const { id, html, error } = event.data;
