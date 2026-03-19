@@ -49,12 +49,11 @@ export interface MarkdownEditorProps
   autoSaveInterval?: number;
   /** 快捷键映射 */
   shortcuts?: ShortcutMap;
+  /** 最大字符数 */
+  maxLength?: number;
 }
 
-interface ToolbarConfig {
-  show?: boolean;
-  items?: ToolbarItem[];
-}
+export type ToolbarConfig = boolean | ToolbarItem[] | { show?: boolean; items?: ToolbarItem[] };
 
 export type LayoutMode = 'split' | 'tabs' | 'editor-only' | 'preview-only';
 
@@ -121,6 +120,13 @@ const HEADING_LEVELS: ToolbarItem[] = ['h1', 'h2', 'h3', 'h4', 'h5'];
 
 const LAYOUT_CYCLE: LayoutMode[] = ['preview-only', 'editor-only', 'split'];
 
+function normalizeToolbarConfig(config: ToolbarConfig | undefined): { show: boolean; items: ToolbarItem[] } {
+  if (config === false) return { show: false, items: [] };
+  if (config === true || config === undefined) return { show: true, items: DEFAULT_TOOLBAR };
+  if (Array.isArray(config)) return { show: true, items: config };
+  return { show: config.show !== false, items: config.items ?? DEFAULT_TOOLBAR };
+}
+
 // ============================================================
 // 编辑器工具栏操作
 // ============================================================
@@ -135,7 +141,7 @@ const TOOLBAR_ACTIONS: Record<string, (view: EditorView) => void> = {
   h4: (view) => setHeadingLevel(view, 4),
   h5: (view) => setHeadingLevel(view, 5),
   quote: (view) => prependLine(view, '> '),
-  code: (view) => wrapSelection(view, '\n```\n', '\n```\n'),
+  code: (view) => wrapSelection(view, '`', '`'),
   codeblock: (view) => wrapSelection(view, '\n```\n', '\n```\n'),
   link: (view) => wrapSelection(view, '[', '](url)'),
   image: (view) => insertText(view, '![alt](url)'),
@@ -165,11 +171,12 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
     minHeight = '400px',
     maxHeight = '800px',
     extensions: userExtensions = [],
-    toolbar = { show: true, items: DEFAULT_TOOLBAR },
+    toolbar: toolbarProp,
     readOnly = false,
     onImageUpload,
     onAutoSave,
     autoSaveInterval = 30000,
+    maxLength,
     ...rendererProps
   }) => {
     const editorContainerRef = useRef<HTMLDivElement>(null);
@@ -183,6 +190,9 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
     const { resolvedTheme } = useTheme();
     const { messages } = useLocale();
     const editorRootRef = useRef<HTMLDivElement>(null);
+    const isTruncatingRef = useRef(false);
+
+    const toolbar = normalizeToolbarConfig(toolbarProp);
 
     // 受控 value 同步
     useEffect(() => {
@@ -219,7 +229,20 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
 
       const updateListener = EditorView.updateListener.of((update) => {
         if (update.docChanged) {
-          const newValue = update.state.doc.toString();
+          if (isTruncatingRef.current) {
+            isTruncatingRef.current = false;
+            return;
+          }
+          let newValue = update.state.doc.toString();
+          if (maxLength !== undefined && newValue.length > maxLength) {
+            newValue = newValue.slice(0, maxLength);
+            isTruncatingRef.current = true;
+            const cursor = Math.min(update.state.selection.main.head, maxLength);
+            update.view.dispatch({
+              changes: { from: maxLength, to: update.state.doc.length },
+              selection: { anchor: cursor },
+            });
+          }
           setContent(newValue);
           onChange?.(newValue);
         }
@@ -434,7 +457,7 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
             </div>
             {/* 右侧：其他工具按钮 */}
             <div className="toolbar-right">
-              {(toolbar.items ?? DEFAULT_TOOLBAR).filter((i) => i !== 'layout').map((item, index) =>
+              {toolbar.items.filter((i) => i !== 'layout').map((item, index) =>
                 item === '|' ? (
                   <span key={index} className="toolbar-separator" />
                 ) : item === 'heading' ? (
@@ -499,6 +522,12 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
             </div>
           )}
         </div>
+
+        {maxLength !== undefined && (
+          <div className="markdown-editor-counter">
+            {content.length} / {maxLength}
+          </div>
+        )}
       </div>
     );
   },

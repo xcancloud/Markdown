@@ -41,11 +41,68 @@ export interface MarkdownRendererProps {
   onImageClick?: (src: string, alt: string, event: React.MouseEvent) => void;
   /** 自定义渲染器映射 */
   components?: Partial<ComponentMap>;
+  /** 是否正在接收流式内容 */
+  streaming?: boolean;
+  /** 流式结束回调 */
+  onStreamEnd?: () => void;
 }
 
 type ComponentMap = {
   [tag: string]: React.ComponentType<any>;
 };
+
+const LANG_EXT_MAP: Record<string, string> = {
+  javascript: 'js', typescript: 'ts', python: 'py', java: 'java',
+  c: 'c', cpp: 'cpp', csharp: 'cs', go: 'go', rust: 'rs',
+  ruby: 'rb', php: 'php', swift: 'swift', kotlin: 'kt',
+  html: 'html', css: 'css', scss: 'scss', json: 'json',
+  yaml: 'yml', toml: 'toml', xml: 'xml', sql: 'sql',
+  bash: 'sh', shell: 'sh', powershell: 'ps1', dockerfile: 'dockerfile',
+  markdown: 'md', latex: 'tex', graphql: 'graphql',
+};
+
+const SCROLL_THRESHOLD = 80;
+
+function downloadCode(code: string, lang: string) {
+  const ext = LANG_EXT_MAP[lang] || 'txt';
+  const blob = new Blob([code], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `code-snippet.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function showHtmlPreview(code: string, closeLabel: string) {
+  const overlay = document.createElement('div');
+  overlay.className = 'code-preview-modal';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'code-preview-close';
+  closeBtn.textContent = closeLabel;
+  closeBtn.addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+
+  const iframe = document.createElement('iframe');
+  iframe.className = 'code-preview-iframe';
+  // allow-scripts enables JS execution; allow-same-origin is intentionally
+  // omitted so the sandboxed content cannot access the parent document.
+  iframe.setAttribute('sandbox', 'allow-scripts');
+  iframe.srcdoc = code;
+
+  overlay.appendChild(closeBtn);
+  overlay.appendChild(iframe);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) document.body.removeChild(overlay);
+  });
+
+  document.body.appendChild(overlay);
+}
 
 // ============================================================
 // 主组件
@@ -62,6 +119,8 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
     onRendered,
     onLinkClick,
     onImageClick,
+    streaming = false,
+    onStreamEnd,
   }) => {
     const { resolvedTheme, theme: ctxTheme } = useTheme();
     const { messages } = useLocale();
@@ -74,7 +133,9 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
     const [error, setError] = useState<Error | null>(null);
 
     const containerRef = useRef<HTMLDivElement>(null);
-    const debouncedSource = useDebouncedValue(source, debounceMs);
+    const prevStreamingRef = useRef(streaming);
+    const effectiveDebounce = streaming ? 0 : debounceMs;
+    const debouncedSource = useDebouncedValue(source, effectiveDebounce);
 
     // 创建处理器（memoized）
     const processor = useMemo(
@@ -148,28 +209,73 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
     }, [html]);
 
     // ========================================
-    // 代码块 "复制" 按钮注入
+    // 代码块按钮注入 (复制 / 下载 / 预览)
     // ========================================
     useEffect(() => {
       if (!containerRef.current) return;
 
       const codeBlocks = containerRef.current.querySelectorAll('.code-block');
       codeBlocks.forEach((block) => {
-        if (block.querySelector('.copy-button')) return;
+        if (block.querySelector('.code-block-actions')) return;
 
-        const btn = document.createElement('button');
-        btn.className = 'copy-button';
-        btn.textContent = messages.renderer.copyCode;
-        btn.addEventListener('click', async () => {
-          const code = block.querySelector('code')?.textContent ?? '';
+        const lang = (block.getAttribute('data-language') ?? '').toLowerCase();
+        const code = block.querySelector('code')?.textContent ?? '';
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'code-block-actions';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-button';
+        copyBtn.textContent = messages.renderer.copyCode;
+        copyBtn.addEventListener('click', async () => {
           await copyToClipboard(code);
-          btn.textContent = messages.renderer.copied;
-          setTimeout(() => (btn.textContent = messages.renderer.copyCode), 2000);
+          copyBtn.textContent = messages.renderer.copied;
+          setTimeout(() => (copyBtn.textContent = messages.renderer.copyCode), 2000);
         });
+        actionsDiv.appendChild(copyBtn);
+
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'download-button';
+        downloadBtn.textContent = messages.renderer.download;
+        downloadBtn.addEventListener('click', () => {
+          downloadCode(code, lang);
+        });
+        actionsDiv.appendChild(downloadBtn);
+
+        if (lang === 'html') {
+          const previewBtn = document.createElement('button');
+          previewBtn.className = 'preview-button';
+          previewBtn.textContent = messages.renderer.preview;
+          previewBtn.addEventListener('click', () => {
+            showHtmlPreview(code, messages.renderer.closePreview);
+          });
+          actionsDiv.appendChild(previewBtn);
+        }
+
         (block as HTMLElement).style.position = 'relative';
-        block.appendChild(btn);
+        block.appendChild(actionsDiv);
       });
-    }, [html]);
+    }, [html, messages.renderer]);
+
+    // ========================================
+    // Streaming: onStreamEnd + auto-scroll
+    // ========================================
+    useEffect(() => {
+      if (prevStreamingRef.current && !streaming) {
+        onStreamEnd?.();
+      }
+      prevStreamingRef.current = streaming;
+    }, [streaming, onStreamEnd]);
+
+    useEffect(() => {
+      if (streaming && containerRef.current) {
+        const el = containerRef.current;
+        const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_THRESHOLD;
+        if (nearBottom) {
+          el.scrollTop = el.scrollHeight;
+        }
+      }
+    }, [html, streaming]);
 
     // ========================================
     // 事件代理 (链接 & 图片)
@@ -178,14 +284,12 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
       (e: React.MouseEvent<HTMLDivElement>) => {
         const target = e.target as HTMLElement;
 
-        // 链接点击
         const link = target.closest('a');
         if (link && onLinkClick) {
           const href = link.getAttribute('href');
           if (href) onLinkClick(href, e);
         }
 
-        // 图片点击
         if (target.tagName === 'IMG' && onImageClick) {
           const img = target as HTMLImageElement;
           onImageClick(img.src, img.alt, e);
@@ -220,7 +324,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
 
         <div
           ref={containerRef}
-          className="markdown-body"
+          className={`markdown-body${streaming ? ' streaming' : ''}`}
           onClick={handleClick}
           dangerouslySetInnerHTML={{ __html: html }}
         />

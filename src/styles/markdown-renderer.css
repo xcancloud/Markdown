@@ -162,24 +162,7 @@
   background-color: var(--md-code-bg) !important;
 }
 
-.markdown-body .code-block .copy-button {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 4px 12px;
-  font-size: 12px;
-  border: 1px solid var(--md-border);
-  border-radius: var(--md-radius);
-  background: var(--md-bg);
-  color: var(--md-text-secondary);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.markdown-body .code-block:hover .copy-button {
-  opacity: 1;
-}
+/* Copy button styles now handled by .code-block-actions */
 
 /* Pre (fallback for non-highlighted code) */
 .markdown-body pre {
@@ -483,6 +466,92 @@
 .markdown-body .code-block .shiki,
 .markdown-body .code-block .shiki pre {
   background-color: var(--md-code-bg) !important;
+}
+
+/* Streaming cursor animation */
+.markdown-body.streaming::after {
+  content: '▎';
+  display: inline;
+  animation: cursor-blink 1s step-end infinite;
+  color: var(--md-link, #0969da);
+  font-weight: bold;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Code block actions container */
+.markdown-body .code-block .code-block-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.markdown-body .code-block:hover .code-block-actions {
+  opacity: 1;
+}
+
+.markdown-body .code-block .code-block-actions button {
+  padding: 4px 12px;
+  font-size: 12px;
+  border: 1px solid var(--md-border);
+  border-radius: var(--md-radius);
+  background: var(--md-bg);
+  color: var(--md-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.markdown-body .code-block .code-block-actions button:hover {
+  color: var(--md-text);
+  border-color: var(--md-text-secondary);
+}
+
+/* HTML preview modal */
+.code-preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.code-preview-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1;
+  padding: 6px 16px;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--md-radius, 6px);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+}
+
+.code-preview-close:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.code-preview-iframe {
+  width: 80vw;
+  height: 80vh;
+  border: none;
+  border-radius: var(--md-radius, 6px);
+  background: #fff;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
 }
 
 /* ============================================================
