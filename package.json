@@ -18,6 +18,14 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angus/AngusMarkdown.git"
+  },
   "sideEffects": [
     "*.css"
   ],
@@ -75,6 +83,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "deploy": "npm run test && npm run build && npm publish",
+    "deploy:dry-run": "npm run build && npm publish --dry-run"
   }
 }
