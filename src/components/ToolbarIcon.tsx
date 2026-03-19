@@ -23,6 +23,14 @@ const svgIcons: Record<string, React.ReactNode> = {
       <circle cx="8" cy="8" r="1.2" fill="currentColor" />
     </svg>
   ),
+  'codeblock': (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1.5" y="1.5" width="13" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+      <line x1="4" y1="5.5" x2="12" y2="5.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+      <line x1="4" y1="8" x2="10" y2="8" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+      <line x1="4" y1="10.5" x2="8" y2="10.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+    </svg>
+  ),
 };
 
 const textIcons: Record<string, string> = {

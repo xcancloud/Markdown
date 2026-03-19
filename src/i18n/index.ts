@@ -46,6 +46,9 @@ export interface I18nMessages {
     copied: string;
     renderError: string;
     loading: string;
+    download: string;
+    preview: string;
+    closePreview: string;
   };
   // TOC
   toc: {
@@ -103,6 +106,9 @@ const zhCN: I18nMessages = {
     copied: '已复制！',
     renderError: '渲染错误：',
     loading: '渲染中...',
+    download: '下载',
+    preview: '预览',
+    closePreview: '关闭',
   },
   toc: {
     title: '目录',
@@ -158,6 +164,9 @@ const enUS: I18nMessages = {
     copied: 'Copied!',
     renderError: 'Render Error:',
     loading: 'Rendering...',
+    download: 'Download',
+    preview: 'Preview',
+    closePreview: 'Close',
   },
   toc: {
     title: 'Table of Contents',

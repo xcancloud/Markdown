@@ -35,6 +35,7 @@ export {
   MarkdownEditor,
   type MarkdownEditorProps,
   type ToolbarItem,
+  type ToolbarConfig,
   type LayoutMode,
 } from './components/MarkdownEditor';
 export {
