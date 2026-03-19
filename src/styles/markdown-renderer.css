@@ -162,24 +162,7 @@
   background-color: var(--md-code-bg) !important;
 }
 
-.markdown-body .code-block .copy-button {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 4px 12px;
-  font-size: 12px;
-  border: 1px solid var(--md-border);
-  border-radius: var(--md-radius);
-  background: var(--md-bg);
-  color: var(--md-text-secondary);
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.markdown-body .code-block:hover .copy-button {
-  opacity: 1;
-}
+/* Copy button styles now handled by .code-block-actions */
 
 /* Pre (fallback for non-highlighted code) */
 .markdown-body pre {
