@@ -64,6 +64,7 @@ const SITE_TEXT = {
         editor: 'Editor with Upload',
         provider: 'Theme & i18n',
         hook: 'useMarkdown Hook',
+        streaming: 'SSE Streaming',
       },
     },
     cta: {
@@ -120,6 +121,7 @@ const SITE_TEXT = {
         editor: '编辑器与上传',
         provider: '主题与国际化',
         hook: 'useMarkdown Hook',
+        streaming: 'SSE 流式渲染',
       },
     },
     cta: {
@@ -281,9 +283,10 @@ function App() {
     <MarkdownEditor
       initialValue="# Start editing..."
       layout="split"
+      maxLength={5000}
+      toolbar={['bold', 'italic', '|', 'code', 'codeblock', '|', 'link', 'image']}
       onChange={(value) => console.log(value)}
       onImageUpload={async (file) => {
-        // Upload file, return URL
         return URL.createObjectURL(file);
       }}
     />
@@ -322,6 +325,43 @@ function MyComponent() {
 
   return (
     <div dangerouslySetInnerHTML={{ __html: html }} />
+  );
+}`,
+  streaming: `import { useState } from 'react';
+import { MarkdownRenderer } from '@angus/markdown';
+import '@angus/markdown/styles';
+
+function StreamingDemo() {
+  const [content, setContent] = useState('');
+  const [streaming, setStreaming] = useState(false);
+
+  const startStream = () => {
+    setContent('');
+    setStreaming(true);
+
+    const es = new EventSource('/api/chat/stream');
+    es.onmessage = (event) => {
+      setContent((prev) => prev + JSON.parse(event.data).token);
+    };
+    es.addEventListener('done', () => {
+      es.close();
+      setStreaming(false);
+    });
+    es.onerror = () => { es.close(); setStreaming(false); };
+  };
+
+  return (
+    <div>
+      <button onClick={startStream} disabled={streaming}>
+        {streaming ? 'Streaming...' : 'Start'}
+      </button>
+      <MarkdownRenderer
+        source={content}
+        streaming={streaming}
+        onStreamEnd={() => console.log('Done')}
+        showToc={false}
+      />
+    </div>
   );
 }`,
 };

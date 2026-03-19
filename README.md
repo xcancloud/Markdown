@@ -126,13 +126,88 @@ function MyComponent() {
 }
 ```
 
+### SSE Streaming Integration
+
+```tsx
+import { useState, useEffect } from 'react';
+import { MarkdownRenderer } from '@angus/markdown';
+import '@angus/markdown/styles';
+
+function StreamingDemo() {
+  const [content, setContent] = useState('');
+  const [streaming, setStreaming] = useState(false);
+
+  const startStream = () => {
+    setContent('');
+    setStreaming(true);
+
+    const eventSource = new EventSource('/api/chat/stream');
+
+    eventSource.onmessage = (event) => {
+      const token = JSON.parse(event.data).token;
+      setContent((prev) => prev + token);
+    };
+
+    eventSource.addEventListener('done', () => {
+      eventSource.close();
+      setStreaming(false);
+    });
+
+    eventSource.onerror = () => {
+      eventSource.close();
+      setStreaming(false);
+    };
+  };
+
+  return (
+    <div>
+      <button onClick={startStream} disabled={streaming}>
+        {streaming ? 'Streaming...' : 'Start Stream'}
+      </button>
+      <MarkdownRenderer
+        source={content}
+        streaming={streaming}
+        onStreamEnd={() => console.log('Stream ended')}
+        showToc={false}
+      />
+    </div>
+  );
+}
+```
+
+You can also use `fetch` with streaming:
+
+```tsx
+async function fetchStream() {
+  setContent('');
+  setStreaming(true);
+
+  const response = await fetch('/api/chat', {
+    method: 'POST',
+    body: JSON.stringify({ prompt: 'Hello' }),
+  });
+
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    setContent((prev) => prev + chunk);
+  }
+
+  setStreaming(false);
+}
+```
+
 ---
 
 ## Components
 
 ### `<MarkdownRenderer />`
 
-Full-featured renderer with TOC sidebar, Mermaid post-processing, and copy buttons.
+Full-featured renderer with TOC sidebar, Mermaid post-processing, copy/download/preview buttons on code blocks, and SSE streaming support.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
@@ -147,6 +222,8 @@ Full-featured renderer with TOC sidebar, Mermaid post-processing, and copy butto
 | `onLinkClick` | `(href, event) => void` | — | Link click interceptor |
 | `onImageClick` | `(src, alt, event) => void` | — | Image click handler |
 | `components` | `Partial<ComponentMap>` | — | Custom element renderers |
+| `streaming` | `boolean` | `false` | Whether currently receiving streaming content (shows blinking cursor, bypasses debounce) |
+| `onStreamEnd` | `() => void` | — | Callback fired when `streaming` transitions from `true` to `false` |
 
 ### `<MarkdownEditor />`
 
@@ -158,12 +235,49 @@ CodeMirror 6-based editor with toolbar, split/tab layouts, image paste & drop.
 | `value` | `string` | — | Controlled value |
 | `onChange` | `(value) => void` | — | Change callback |
 | `layout` | `'split' \| 'tabs' \| 'editor-only' \| 'preview-only'` | `'split'` | Layout mode |
-| `toolbar` | `ToolbarConfig` | `{ show: true }` | Toolbar configuration |
+| `toolbar` | `ToolbarConfig` | — | Toolbar configuration (see below) |
 | `readOnly` | `boolean` | `false` | Read-only mode |
 | `onImageUpload` | `(file) => Promise<string>` | — | Image upload handler |
 | `onAutoSave` | `(value) => void` | — | Auto-save callback |
 | `autoSaveInterval` | `number` | `30000` | Auto-save interval (ms) |
 | `extensions` | `Extension[]` | `[]` | Additional CM extensions |
+| `maxLength` | `number` | — | Maximum character count. When set, a counter is displayed below the editor and input beyond the limit is truncated |
+
+#### Toolbar Configuration
+
+The `toolbar` prop accepts several forms:
+
+```tsx
+// Hide toolbar completely
+<MarkdownEditor toolbar={false} />
+
+// Show only specific items
+<MarkdownEditor toolbar={['bold', 'italic', '|', 'code', 'codeblock']} />
+
+// Object form (legacy)
+<MarkdownEditor toolbar={{ show: true, items: ['bold', 'italic'] }} />
+
+// Default: show all toolbar items
+<MarkdownEditor />
+```
+
+**Available `ToolbarItem` identifiers:**
+
+`'bold'` | `'italic'` | `'strikethrough'` | `'heading'` | `'h1'`–`'h5'` | `'quote'` | `'code'` (inline) | `'codeblock'` (fenced) | `'link'` | `'image'` | `'table'` | `'ul'` | `'ol'` | `'task'` | `'hr'` | `'math'` | `'|'` (separator) | `'undo'` | `'redo'` | `'preview'` | `'fullscreen'` | `'layout'`
+
+#### Character Limit
+
+```tsx
+<MarkdownEditor maxLength={500} onChange={(v) => console.log(v)} />
+// Displays "128 / 500" counter below the editor
+```
+
+#### Code Block Actions
+
+Code blocks in the rendered preview include:
+- **Copy** — Copies code to clipboard
+- **Download** — Downloads code as `code-snippet.{ext}` (extension mapped from language identifier, e.g., `js` → `.js`, `python` → `.py`, fallback `.txt`)
+- **Preview** — Only shown for `html` code blocks; renders HTML in a sandboxed iframe modal (`sandbox="allow-scripts"`, no `allow-same-origin`)
 
 ### `<MarkdownViewer />`
 
