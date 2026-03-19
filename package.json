@@ -1,6 +1,6 @@
 {
   "name": "@xcan-cloud/markdown",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Production-grade, extensible, high-performance Markdown rendering and editing component",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
@@ -13,7 +13,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && cp -r src/styles dist/",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",

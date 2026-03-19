@@ -34,7 +34,7 @@ export default defineConfig({
         },
       },
     },
-    sourcemap: true,
+    sourcemap: false, // 生产构建关闭 sourcemap，显著减小 dist 体积（约减半）
   },
   worker: {
     format: 'es',
