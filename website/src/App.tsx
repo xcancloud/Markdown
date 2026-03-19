@@ -5,7 +5,7 @@ import {
   MarkdownEditor,
   ThemeSwitcher,
   LocaleSwitcher,
-} from '@xcancloud/markdown';
+} from '@xcan-cloud/markdown';
 import '../../src/styles/markdown-renderer.css';
 import '../../src/styles/markdown-editor.css';
 import '../../src/styles/themes/github.css';
@@ -146,7 +146,7 @@ Markdown supports **bold**, *italic*, ~~strikethrough~~, and \`inline code\`.
 ### Code Highlighting
 
 \`\`\`typescript
-import { MarkdownEditor } from '@xcancloud/markdown';
+import { MarkdownEditor } from '@xcan-cloud/markdown';
 
 function App() {
   return (
@@ -207,7 +207,7 @@ Markdown 支持 **加粗**、*斜体*、~~删除线~~ 和 \`行内代码\`。
 ### 代码高亮
 
 \`\`\`typescript
-import { MarkdownEditor } from '@xcancloud/markdown';
+import { MarkdownEditor } from '@xcan-cloud/markdown';
 
 function App() {
   return (
@@ -263,8 +263,8 @@ $$
 // Code examples (shared, same for both languages)
 // ============================================================
 const CODE_EXAMPLES = {
-  basic: `import { MarkdownRenderer } from '@xcancloud/markdown';
-import '@xcancloud/markdown/styles';
+  basic: `import { MarkdownRenderer } from '@xcan-cloud/markdown';
+import '@xcan-cloud/markdown/styles';
 
 function App() {
   return (
@@ -275,8 +275,8 @@ function App() {
     />
   );
 }`,
-  editor: `import { MarkdownEditor } from '@xcancloud/markdown';
-import '@xcancloud/markdown/styles';
+  editor: `import { MarkdownEditor } from '@xcan-cloud/markdown';
+import '@xcan-cloud/markdown/styles';
 
 function App() {
   return (
@@ -297,7 +297,7 @@ function App() {
   MarkdownEditor,
   ThemeSwitcher,
   LocaleSwitcher,
-} from '@xcancloud/markdown';
+} from '@xcan-cloud/markdown';
 
 function App() {
   return (
@@ -314,7 +314,7 @@ function App() {
     </MarkdownProvider>
   );
 }`,
-  hook: `import { useMarkdown } from '@xcancloud/markdown';
+  hook: `import { useMarkdown } from '@xcan-cloud/markdown';
 
 function MyComponent() {
   const { html, toc, isLoading, error } =
@@ -328,8 +328,8 @@ function MyComponent() {
   );
 }`,
   streaming: `import { useState } from 'react';
-import { MarkdownRenderer } from '@xcancloud/markdown';
-import '@xcancloud/markdown/styles';
+import { MarkdownRenderer } from '@xcan-cloud/markdown';
+import '@xcan-cloud/markdown/styles';
 
 function StreamingDemo() {
   const [content, setContent] = useState('');
@@ -398,7 +398,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleCopyInstall = useCallback(() => {
-    navigator.clipboard.writeText('npm install @xcancloud/markdown').then(() => {
+    navigator.clipboard.writeText('npm install @xcan-cloud/markdown').then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -448,7 +448,7 @@ const App: React.FC = () => {
             </a>
           </div>
           <div className="hero-install">
-            <code>npm install @xcancloud/markdown</code>
+            <code>npm install @xcan-cloud/markdown</code>
             <button className="copy-btn" onClick={handleCopyInstall} aria-label="Copy install command">
               {copied ? '✅' : '📋'}
             </button>

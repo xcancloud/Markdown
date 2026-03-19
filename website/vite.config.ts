@@ -12,7 +12,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@xcancloud/markdown': resolve(__dirname, '../src/index.ts'),
+      '@xcan-cloud/markdown': resolve(__dirname, '../src/index.ts'),
     },
   },
 });

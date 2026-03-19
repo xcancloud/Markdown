@@ -94,4 +94,4 @@ export { copyToClipboard } from './utils/clipboard';
 export { slug, resetSlugger } from './utils/slug';
 
 // --- 样式 (需要在消费端 import) ---
-// import '@xcancloud/markdown/styles'
+// import '@xcan-cloud/markdown/styles'

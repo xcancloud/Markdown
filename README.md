@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="https://img.shields.io/npm/v/@xcancloud/markdown?color=blue" alt="npm version" />
-  <img src="https://img.shields.io/npm/l/@xcancloud/markdown" alt="license" />
+  <img src="https://img.shields.io/npm/v/@xcan-cloud/markdown?color=blue" alt="npm version" />
+  <img src="https://img.shields.io/npm/l/@xcan-cloud/markdown" alt="license" />
   <img src="https://img.shields.io/badge/react-%3E%3D18.0.0-61dafb" alt="react" />
   <img src="https://img.shields.io/badge/typescript-5.x-3178c6" alt="typescript" />
 </p>
@@ -39,11 +39,11 @@
 ## Installation
 
 ```bash
-npm install @xcancloud/markdown
+npm install @xcan-cloud/markdown
 # or
-yarn add @xcancloud/markdown
+yarn add @xcan-cloud/markdown
 # or
-pnpm add @xcancloud/markdown
+pnpm add @xcan-cloud/markdown
 ```
 
 Peer dependencies:
@@ -59,8 +59,8 @@ npm install react react-dom
 ### Basic Rendering
 
 ```tsx
-import { MarkdownRenderer } from '@xcancloud/markdown';
-import '@xcancloud/markdown/styles';
+import { MarkdownRenderer } from '@xcan-cloud/markdown';
+import '@xcan-cloud/markdown/styles';
 
 function App() {
   return <MarkdownRenderer source="# Hello World\n\nThis is **Markdown**!" />;
@@ -70,8 +70,8 @@ function App() {
 ### Full Editor
 
 ```tsx
-import { MarkdownEditor } from '@xcancloud/markdown';
-import '@xcancloud/markdown/styles';
+import { MarkdownEditor } from '@xcan-cloud/markdown';
+import '@xcan-cloud/markdown/styles';
 
 function App() {
   return (
@@ -92,8 +92,8 @@ import {
   MarkdownEditor,
   ThemeSwitcher,
   LocaleSwitcher,
-} from '@xcancloud/markdown';
-import '@xcancloud/markdown/styles';
+} from '@xcan-cloud/markdown';
+import '@xcan-cloud/markdown/styles';
 
 function App() {
   return (
@@ -111,7 +111,7 @@ function App() {
 ### Hook Usage
 
 ```tsx
-import { useMarkdown } from '@xcancloud/markdown';
+import { useMarkdown } from '@xcan-cloud/markdown';
 
 function MyComponent() {
   const { html, toc, isLoading, error } = useMarkdown('# Hello', {
@@ -130,8 +130,8 @@ function MyComponent() {
 
 ```tsx
 import { useState, useEffect } from 'react';
-import { MarkdownRenderer } from '@xcancloud/markdown';
-import '@xcancloud/markdown/styles';
+import { MarkdownRenderer } from '@xcan-cloud/markdown';
+import '@xcan-cloud/markdown/styles';
 
 function StreamingDemo() {
   const [content, setContent] = useState('');
@@ -315,13 +315,13 @@ Markdown uses CSS Custom Properties for theming. Three built-in themes:
 
 ```tsx
 // GitHub style (default)
-import '@xcancloud/markdown/styles';
+import '@xcan-cloud/markdown/styles';
 
 // Notion style
-import '@xcancloud/markdown/themes/notion.css';
+import '@xcan-cloud/markdown/themes/notion.css';
 
 // Typora style
-import '@xcancloud/markdown/themes/typora.css';
+import '@xcan-cloud/markdown/themes/typora.css';
 ```
 
 ### Custom Theme
@@ -354,7 +354,7 @@ Built-in locales: `en-US` and `zh-CN`.
 Or use programmatically:
 
 ```tsx
-import { setLocale, t } from '@xcancloud/markdown';
+import { setLocale, t } from '@xcan-cloud/markdown';
 
 setLocale('zh-CN');
 console.log(t().toolbar.bold); // "加粗"
