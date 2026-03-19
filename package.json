@@ -1,6 +1,6 @@
 {
   "name": "@xcan-cloud/markdown",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Production-grade, extensible, high-performance Markdown rendering and editing component",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
