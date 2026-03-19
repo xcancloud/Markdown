@@ -1,7 +1,9 @@
 /* ============================================================
    Markdown Editor 样式
-   ============================================================ */
 
+   编辑器正文字体变量（可外部覆盖，与 markdown-renderer 保持一致）：
+     --md-font-body, --md-font-size-base, --md-font-mono
+   ============================================================ */
 .markdown-editor {
   border: 1px solid var(--md-border, #d0d7de);
   border-radius: 6px;
@@ -106,9 +108,9 @@
 }
 
 .markdown-editor-panel .cm-editor .cm-content {
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
-    monospace;
-  font-size: 14px;
+  font-family: var(--md-font-mono, ui-monospace, SFMono-Regular, 'SF Mono',
+    Menlo, Consolas, monospace);
+  font-size: var(--md-font-size-base, 14px);
 }
 
 .markdown-preview-panel {
@@ -355,6 +357,13 @@
   text-align: right;
   border-top: 1px solid var(--md-border, #d0d7de);
   background: var(--md-code-bg, #f6f8fa);
+}
+
+.markdown-editor.markdown-theme-dark .markdown-editor-counter,
+.markdown-editor.markdown-theme-github-dark .markdown-editor-counter {
+  background: var(--md-code-bg, #161b22);
+  color: var(--md-text-secondary);
+  border-top-color: var(--md-border);
 }
 
 .markdown-editor.markdown-theme-dark .cm-editor .cm-gutters {

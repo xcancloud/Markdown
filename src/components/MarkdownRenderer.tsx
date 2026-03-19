@@ -134,7 +134,8 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
 
     const containerRef = useRef<HTMLDivElement>(null);
     const prevStreamingRef = useRef(streaming);
-    const effectiveDebounce = streaming ? 0 : debounceMs;
+    /** 流式时也保留短 debounce（至少 50ms），合并高频更新以减少闪烁 */
+    const effectiveDebounce = streaming ? Math.max(50, debounceMs) : debounceMs;
     const debouncedSource = useDebouncedValue(source, effectiveDebounce);
 
     // 创建处理器（memoized）
@@ -210,9 +211,10 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
 
     // ========================================
     // 代码块按钮注入 (复制 / 下载 / 预览)
+    // 仅在流式结束后注入，避免 SSE 追加 token 渲染过程中误注入或闪烁
     // ========================================
     useEffect(() => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || streaming) return;
 
       const codeBlocks = containerRef.current.querySelectorAll('.code-block');
       codeBlocks.forEach((block) => {
@@ -255,7 +257,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
         (block as HTMLElement).style.position = 'relative';
         block.appendChild(actionsDiv);
       });
-    }, [html, messages.renderer]);
+    }, [html, messages.renderer, streaming]);
 
     // ========================================
     // Streaming: onStreamEnd + auto-scroll
