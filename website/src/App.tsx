@@ -5,7 +5,7 @@ import {
   MarkdownEditor,
   ThemeSwitcher,
   LocaleSwitcher,
-} from '@angus/markdown';
+} from '@xcancloud/markdown';
 import '../../src/styles/markdown-renderer.css';
 import '../../src/styles/markdown-editor.css';
 import '../../src/styles/themes/github.css';
@@ -52,7 +52,7 @@ const SITE_TEXT = {
     },
     demo: {
       heading: 'Live Demo',
-      subheading: 'Try AngusMarkdown right here, right now.',
+      subheading: 'Try Markdown right here, right now.',
       tabRenderer: 'Renderer',
       tabEditor: 'Editor',
     },
@@ -69,11 +69,11 @@ const SITE_TEXT = {
     },
     cta: {
       heading: 'Ready to Build?',
-      subheading: 'Start using AngusMarkdown in your project today.',
+      subheading: 'Start using Markdown in your project today.',
       getStarted: 'Get Started',
       viewDocs: 'View Documentation',
     },
-    footer: 'AngusMarkdown v1.0.0 — MIT License — Built with React + unified',
+    footer: 'Markdown v1.0.0 — MIT License — Built with React + unified',
   },
   zh: {
     nav: { features: '特性', demo: '演示', code: '代码', github: 'GitHub' },
@@ -130,23 +130,23 @@ const SITE_TEXT = {
       getStarted: '快速开始',
       viewDocs: '查看文档',
     },
-    footer: 'AngusMarkdown v1.0.0 — MIT 许可证 — 基于 React + unified 构建',
+    footer: 'Markdown v1.0.0 — MIT 许可证 — 基于 React + unified 构建',
   },
 };
 
 // ============================================================
 // Demo Markdown (bilingual)
 // ============================================================
-const DEMO_SOURCE_EN = `# Welcome to AngusMarkdown
+const DEMO_SOURCE_EN = `# Welcome to Markdown
 
 ## Features Showcase
 
-AngusMarkdown supports **bold**, *italic*, ~~strikethrough~~, and \`inline code\`.
+Markdown supports **bold**, *italic*, ~~strikethrough~~, and \`inline code\`.
 
 ### Code Highlighting
 
 \`\`\`typescript
-import { MarkdownEditor } from '@angus/markdown';
+import { MarkdownEditor } from '@xcancloud/markdown';
 
 function App() {
   return (
@@ -188,7 +188,7 @@ $$
 ### Alerts
 
 > [!TIP]
-> AngusMarkdown is production-ready and fully extensible!
+> Markdown is production-ready and fully extensible!
 
 > [!NOTE]
 > Supports both ESM and CJS output formats.
@@ -198,16 +198,16 @@ $$
 *Built with the unified ecosystem*
 `;
 
-const DEMO_SOURCE_ZH = `# 欢迎使用 AngusMarkdown
+const DEMO_SOURCE_ZH = `# 欢迎使用 Markdown
 
 ## 功能展示
 
-AngusMarkdown 支持 **加粗**、*斜体*、~~删除线~~ 和 \`行内代码\`。
+Markdown 支持 **加粗**、*斜体*、~~删除线~~ 和 \`行内代码\`。
 
 ### 代码高亮
 
 \`\`\`typescript
-import { MarkdownEditor } from '@angus/markdown';
+import { MarkdownEditor } from '@xcancloud/markdown';
 
 function App() {
   return (
@@ -249,7 +249,7 @@ $$
 ### 提示框
 
 > [!TIP]
-> AngusMarkdown 已生产就绪，完全可扩展！
+> Markdown 已生产就绪，完全可扩展！
 
 > [!NOTE]
 > 支持 ESM 和 CJS 双格式输出。
@@ -263,8 +263,8 @@ $$
 // Code examples (shared, same for both languages)
 // ============================================================
 const CODE_EXAMPLES = {
-  basic: `import { MarkdownRenderer } from '@angus/markdown';
-import '@angus/markdown/styles';
+  basic: `import { MarkdownRenderer } from '@xcancloud/markdown';
+import '@xcancloud/markdown/styles';
 
 function App() {
   return (
@@ -275,8 +275,8 @@ function App() {
     />
   );
 }`,
-  editor: `import { MarkdownEditor } from '@angus/markdown';
-import '@angus/markdown/styles';
+  editor: `import { MarkdownEditor } from '@xcancloud/markdown';
+import '@xcancloud/markdown/styles';
 
 function App() {
   return (
@@ -297,7 +297,7 @@ function App() {
   MarkdownEditor,
   ThemeSwitcher,
   LocaleSwitcher,
-} from '@angus/markdown';
+} from '@xcancloud/markdown';
 
 function App() {
   return (
@@ -314,7 +314,7 @@ function App() {
     </MarkdownProvider>
   );
 }`,
-  hook: `import { useMarkdown } from '@angus/markdown';
+  hook: `import { useMarkdown } from '@xcancloud/markdown';
 
 function MyComponent() {
   const { html, toc, isLoading, error } =
@@ -328,8 +328,8 @@ function MyComponent() {
   );
 }`,
   streaming: `import { useState } from 'react';
-import { MarkdownRenderer } from '@angus/markdown';
-import '@angus/markdown/styles';
+import { MarkdownRenderer } from '@xcancloud/markdown';
+import '@xcancloud/markdown/styles';
 
 function StreamingDemo() {
   const [content, setContent] = useState('');
@@ -398,7 +398,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleCopyInstall = useCallback(() => {
-    navigator.clipboard.writeText('npm install @angus/markdown').then(() => {
+    navigator.clipboard.writeText('npm install @xcancloud/markdown').then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -411,13 +411,13 @@ const App: React.FC = () => {
         <div className="container nav-inner">
           <a href="#" className="nav-brand">
             <span className="nav-logo">A</span>
-            AngusMarkdown
+            Markdown
           </a>
           <div className="nav-links">
             <a href="#features">{t.nav.features}</a>
             <a href="#demo">{t.nav.demo}</a>
             <a href="#code">{t.nav.code}</a>
-            <a href="https://github.com/xcancloud/AngusMarkdown" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/xcancloud/Markdown" target="_blank" rel="noopener noreferrer">
               {t.nav.github}
             </a>
           </div>
@@ -443,12 +443,12 @@ const App: React.FC = () => {
             <a className="btn btn-primary" href="#demo">
               {t.hero.liveDemo}
             </a>
-            <a className="btn btn-secondary" href="https://github.com/xcancloud/AngusMarkdown" target="_blank" rel="noopener noreferrer">
+            <a className="btn btn-secondary" href="https://github.com/xcancloud/Markdown" target="_blank" rel="noopener noreferrer">
               GitHub
             </a>
           </div>
           <div className="hero-install">
-            <code>npm install @angus/markdown</code>
+            <code>npm install @xcancloud/markdown</code>
             <button className="copy-btn" onClick={handleCopyInstall} aria-label="Copy install command">
               {copied ? '✅' : '📋'}
             </button>
@@ -582,10 +582,10 @@ const App: React.FC = () => {
           <h2>{t.cta.heading}</h2>
           <p>{t.cta.subheading}</p>
           <div className="hero-actions">
-            <a className="btn btn-primary" href="https://github.com/xcancloud/AngusMarkdown" target="_blank" rel="noopener noreferrer">
+            <a className="btn btn-primary" href="https://github.com/xcancloud/Markdown" target="_blank" rel="noopener noreferrer">
               {t.cta.getStarted}
             </a>
-            <a className="btn btn-secondary" href="https://github.com/xcancloud/AngusMarkdown" target="_blank" rel="noopener noreferrer">
+            <a className="btn btn-secondary" href="https://github.com/xcancloud/Markdown" target="_blank" rel="noopener noreferrer">
               {t.cta.viewDocs}
             </a>
           </div>
@@ -596,9 +596,9 @@ const App: React.FC = () => {
       <footer className="site-footer">
         <div className="container">
           <div className="footer-links">
-            <a href="https://github.com/xcancloud/AngusMarkdown" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href="https://github.com/xcancloud/AngusMarkdown/issues" target="_blank" rel="noopener noreferrer">Issues</a>
-            <a href="https://github.com/xcancloud/AngusMarkdown/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License</a>
+            <a href="https://github.com/xcancloud/Markdown" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/xcancloud/Markdown/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+            <a href="https://github.com/xcancloud/Markdown/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License</a>
           </div>
           <p>{t.footer}</p>
         </div>

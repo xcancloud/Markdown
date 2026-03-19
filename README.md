@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="https://img.shields.io/npm/v/@angus/markdown?color=blue" alt="npm version" />
-  <img src="https://img.shields.io/npm/l/@angus/markdown" alt="license" />
+  <img src="https://img.shields.io/npm/v/@xcancloud/markdown?color=blue" alt="npm version" />
+  <img src="https://img.shields.io/npm/l/@xcancloud/markdown" alt="license" />
   <img src="https://img.shields.io/badge/react-%3E%3D18.0.0-61dafb" alt="react" />
   <img src="https://img.shields.io/badge/typescript-5.x-3178c6" alt="typescript" />
 </p>
 
-# AngusMarkdown
+# Markdown
 
 > Production-grade, extensible, high-performance Markdown rendering & editing component for React.
 
@@ -39,11 +39,11 @@
 ## Installation
 
 ```bash
-npm install @angus/markdown
+npm install @xcancloud/markdown
 # or
-yarn add @angus/markdown
+yarn add @xcancloud/markdown
 # or
-pnpm add @angus/markdown
+pnpm add @xcancloud/markdown
 ```
 
 Peer dependencies:
@@ -59,19 +59,19 @@ npm install react react-dom
 ### Basic Rendering
 
 ```tsx
-import { MarkdownRenderer } from '@angus/markdown';
-import '@angus/markdown/styles';
+import { MarkdownRenderer } from '@xcancloud/markdown';
+import '@xcancloud/markdown/styles';
 
 function App() {
-  return <MarkdownRenderer source="# Hello World\n\nThis is **AngusMarkdown**!" />;
+  return <MarkdownRenderer source="# Hello World\n\nThis is **Markdown**!" />;
 }
 ```
 
 ### Full Editor
 
 ```tsx
-import { MarkdownEditor } from '@angus/markdown';
-import '@angus/markdown/styles';
+import { MarkdownEditor } from '@xcancloud/markdown';
+import '@xcancloud/markdown/styles';
 
 function App() {
   return (
@@ -92,8 +92,8 @@ import {
   MarkdownEditor,
   ThemeSwitcher,
   LocaleSwitcher,
-} from '@angus/markdown';
-import '@angus/markdown/styles';
+} from '@xcancloud/markdown';
+import '@xcancloud/markdown/styles';
 
 function App() {
   return (
@@ -111,7 +111,7 @@ function App() {
 ### Hook Usage
 
 ```tsx
-import { useMarkdown } from '@angus/markdown';
+import { useMarkdown } from '@xcancloud/markdown';
 
 function MyComponent() {
   const { html, toc, isLoading, error } = useMarkdown('# Hello', {
@@ -130,8 +130,8 @@ function MyComponent() {
 
 ```tsx
 import { useState, useEffect } from 'react';
-import { MarkdownRenderer } from '@angus/markdown';
-import '@angus/markdown/styles';
+import { MarkdownRenderer } from '@xcancloud/markdown';
+import '@xcancloud/markdown/styles';
 
 function StreamingDemo() {
   const [content, setContent] = useState('');
@@ -311,17 +311,17 @@ Context provider for theme and locale. Wrap your app or section with this.
 
 ## Theming
 
-AngusMarkdown uses CSS Custom Properties for theming. Three built-in themes:
+Markdown uses CSS Custom Properties for theming. Three built-in themes:
 
 ```tsx
 // GitHub style (default)
-import '@angus/markdown/styles';
+import '@xcancloud/markdown/styles';
 
 // Notion style
-import '@angus/markdown/themes/notion.css';
+import '@xcancloud/markdown/themes/notion.css';
 
 // Typora style
-import '@angus/markdown/themes/typora.css';
+import '@xcancloud/markdown/themes/typora.css';
 ```
 
 ### Custom Theme
@@ -354,7 +354,7 @@ Built-in locales: `en-US` and `zh-CN`.
 Or use programmatically:
 
 ```tsx
-import { setLocale, t } from '@angus/markdown';
+import { setLocale, t } from '@xcancloud/markdown';
 
 setLocale('zh-CN');
 console.log(t().toolbar.bold); // "加粗"
