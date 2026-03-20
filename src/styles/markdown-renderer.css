@@ -337,6 +337,35 @@
   color: #cf222e;
 }
 
+/* SVG 代码块预览（```svg / ```xml + SVG） */
+.markdown-body .svg-preview-container {
+  position: relative;
+  margin: var(--md-spacing-md) 0;
+  border: 1px solid rgba(208, 215, 222, 0.4);
+  border-radius: var(--md-radius);
+  background: var(--md-bg);
+  overflow: auto;
+}
+
+.markdown-body .svg-preview-frame {
+  display: flex;
+  justify-content: center;
+  padding: var(--md-spacing-md);
+}
+
+.markdown-body .svg-preview-frame svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.markdown-body .svg-preview-error {
+  padding: var(--md-spacing-md);
+  background: rgba(207, 34, 46, 0.08);
+  border-radius: var(--md-radius);
+  color: #cf222e;
+  font-size: 0.875rem;
+}
+
 /* TOC */
 .markdown-body .markdown-toc {
   padding-left: 1.5em;
@@ -504,7 +533,8 @@
 }
 
 /* Code block actions container */
-.markdown-body .code-block .code-block-actions {
+.markdown-body .code-block .code-block-actions,
+.markdown-body .svg-preview-container .svg-preview-actions {
   position: absolute;
   top: 8px;
   right: 8px;
@@ -514,11 +544,13 @@
   transition: opacity 0.2s;
 }
 
-.markdown-body .code-block:hover .code-block-actions {
+.markdown-body .code-block:hover .code-block-actions,
+.markdown-body .svg-preview-container:hover .svg-preview-actions {
   opacity: 1;
 }
 
-.markdown-body .code-block .code-block-actions button {
+.markdown-body .code-block .code-block-actions button,
+.markdown-body .svg-preview-container .svg-preview-actions button {
   padding: 4px 12px;
   font-size: 12px;
   border: 1px solid var(--md-border);
@@ -529,7 +561,8 @@
   transition: color 0.15s, border-color 0.15s;
 }
 
-.markdown-body .code-block .code-block-actions button:hover {
+.markdown-body .code-block .code-block-actions button:hover,
+.markdown-body .svg-preview-container .svg-preview-actions button:hover {
   color: var(--md-text);
   border-color: var(--md-text-secondary);
 }

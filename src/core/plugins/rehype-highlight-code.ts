@@ -6,6 +6,7 @@ import {
 } from 'shiki';
 import type { Root, Element } from 'hast';
 import type { Plugin } from 'unified';
+import { looksLikeSvgMarkup } from '../utils/svg-sanitize';
 
 interface HighlightOptions {
   theme?: string;
@@ -84,6 +85,21 @@ const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
     });
 
     for (const { node, lang, code } of nodesToProcess) {
+      // SVG 预览（```svg 或 ```xml 且内容为 SVG）
+      const isSvgFence =
+        lang === 'svg' || (lang === 'xml' && looksLikeSvgMarkup(code));
+      if (isSvgFence) {
+        node.tagName = 'div';
+        node.properties = {
+          ...node.properties,
+          className: ['svg-preview-container'],
+          'data-svg': code,
+          'data-language': lang === 'svg' ? 'svg' : 'xml',
+        };
+        node.children = [];
+        continue;
+      }
+
       // Mermaid 代码块跳过高亮，交给 Mermaid 渲染器
       if (lang === 'mermaid') {
         node.properties = {

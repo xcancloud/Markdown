@@ -49,6 +49,7 @@ export interface I18nMessages {
     download: string;
     preview: string;
     closePreview: string;
+    svgInvalid: string;
   };
   // TOC
   toc: {
@@ -109,6 +110,7 @@ const zhCN: I18nMessages = {
     download: '下载',
     preview: '预览',
     closePreview: '关闭',
+    svgInvalid: '无法解析或包含不安全内容的 SVG',
   },
   toc: {
     title: '目录',
@@ -167,6 +169,7 @@ const enUS: I18nMessages = {
     download: 'Download',
     preview: 'Preview',
     closePreview: 'Close',
+    svgInvalid: 'Invalid or unsafe SVG',
   },
   toc: {
     title: 'Table of Contents',

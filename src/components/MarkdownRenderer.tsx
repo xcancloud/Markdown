@@ -12,6 +12,8 @@ import { extractToc, type TocItem } from '../core/plugins/toc-generator';
 import { parseToAst } from '../core/processor';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { copyToClipboard } from '../utils/clipboard';
+import { triggerCodeDownload } from '../core/utils/code-download';
+import { sanitizeSvgMarkup } from '../core/utils/svg-sanitize';
 import { useTheme } from '../context/MarkdownProvider';
 import { useLocale } from '../context/MarkdownProvider';
 
@@ -51,30 +53,7 @@ type ComponentMap = {
   [tag: string]: React.ComponentType<any>;
 };
 
-const LANG_EXT_MAP: Record<string, string> = {
-  javascript: 'js', typescript: 'ts', python: 'py', java: 'java',
-  c: 'c', cpp: 'cpp', csharp: 'cs', go: 'go', rust: 'rs',
-  ruby: 'rb', php: 'php', swift: 'swift', kotlin: 'kt',
-  html: 'html', css: 'css', scss: 'scss', json: 'json',
-  yaml: 'yml', toml: 'toml', xml: 'xml', sql: 'sql',
-  bash: 'sh', shell: 'sh', powershell: 'ps1', dockerfile: 'dockerfile',
-  markdown: 'md', latex: 'tex', graphql: 'graphql',
-};
-
 const SCROLL_THRESHOLD = 80;
-
-function downloadCode(code: string, lang: string) {
-  const ext = LANG_EXT_MAP[lang] || 'txt';
-  const blob = new Blob([code], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `code-snippet.${ext}`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
 
 function showHtmlPreview(code: string, closeLabel: string) {
   const overlay = document.createElement('div');
@@ -210,6 +189,62 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
     }, [html]);
 
     // ========================================
+    // SVG 代码块预览（```svg / ```xml + SVG）
+    // ========================================
+    useEffect(() => {
+      if (!containerRef.current) return;
+
+      const containers = containerRef.current.querySelectorAll('.svg-preview-container');
+      containers.forEach((el) => {
+        const raw = el.getAttribute('data-svg');
+        if (!raw) return;
+
+        const lastRaw = el.getAttribute('data-last-svg');
+        if (lastRaw !== raw) {
+          el.setAttribute('data-last-svg', raw);
+          while (el.firstChild) el.removeChild(el.firstChild);
+          const safe = sanitizeSvgMarkup(raw);
+          if (!safe) {
+            const err = document.createElement('div');
+            err.className = 'svg-preview-error';
+            err.textContent = messages.renderer.svgInvalid;
+            el.appendChild(err);
+          } else {
+            const frame = document.createElement('div');
+            frame.className = 'svg-preview-frame';
+            frame.innerHTML = safe;
+            el.appendChild(frame);
+          }
+        }
+
+        if (streaming || el.querySelector('.svg-preview-actions')) return;
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'code-block-actions svg-preview-actions';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-button';
+        copyBtn.textContent = messages.renderer.copyCode;
+        copyBtn.addEventListener('click', async () => {
+          await copyToClipboard(raw);
+          copyBtn.textContent = messages.renderer.copied;
+          setTimeout(() => (copyBtn.textContent = messages.renderer.copyCode), 2000);
+        });
+        actionsDiv.appendChild(copyBtn);
+
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'download-button';
+        downloadBtn.textContent = messages.renderer.download;
+        downloadBtn.addEventListener('click', () => {
+          triggerCodeDownload(raw, 'svg');
+        });
+        actionsDiv.appendChild(downloadBtn);
+
+        el.insertBefore(actionsDiv, el.firstChild);
+      });
+    }, [html, streaming, messages.renderer]);
+
+    // ========================================
     // 代码块按钮注入 (复制 / 下载 / 预览)
     // 仅在流式结束后注入，避免 SSE 追加 token 渲染过程中误注入或闪烁
     // ========================================
@@ -240,7 +275,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
         downloadBtn.className = 'download-button';
         downloadBtn.textContent = messages.renderer.download;
         downloadBtn.addEventListener('click', () => {
-          downloadCode(code, lang);
+          triggerCodeDownload(code, lang);
         });
         actionsDiv.appendChild(downloadBtn);
 

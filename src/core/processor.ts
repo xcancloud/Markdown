@@ -151,6 +151,7 @@ function createSanitizeSchema(opts: { math?: boolean; mermaid?: boolean }) {
     'id',
     'dataLanguage',
     'dataMermaid',
+    'dataSvg',
     'dataRendered',
   ];
 
