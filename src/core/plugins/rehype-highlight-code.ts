@@ -66,7 +66,7 @@ const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
 
   return async (tree: Root) => {
     const highlighter = await getHighlighter(theme);
-    const nodesToProcess: { node: Element; lang: string; code: string }[] = [];
+    const nodesToProcess: { node: Element; lang: string; code: string; metaAttrs: Record<string, string> }[] = [];
 
     visit(tree, 'element', (node: Element) => {
       if (
@@ -80,11 +80,25 @@ const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
         const lang = langClass?.replace('language-', '') ?? 'text';
 
         const code = extractText(codeEl);
-        nodesToProcess.push({ node, lang, code });
+
+        // Collect data-* meta attributes from the <code> element
+        // (set by remark-code-meta via hProperties)
+        const metaAttrs: Record<string, string> = {};
+        if (codeEl.properties) {
+          for (const [key, val] of Object.entries(codeEl.properties)) {
+            if (key.startsWith('data') && key !== 'data-language' && typeof val === 'string') {
+              // Convert camelCase (dataMeta) to kebab-case (data-meta)
+              const kebab = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+              metaAttrs[kebab] = val;
+            }
+          }
+        }
+
+        nodesToProcess.push({ node, lang, code, metaAttrs });
       }
     });
 
-    for (const { node, lang, code } of nodesToProcess) {
+    for (const { node, lang, code, metaAttrs } of nodesToProcess) {
       // SVG 预览（```svg 或 ```xml 且内容为 SVG）
       const isSvgFence =
         lang === 'svg' || (lang === 'xml' && looksLikeSvgMarkup(code));
@@ -95,6 +109,7 @@ const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
           className: ['svg-preview-container'],
           'data-svg': code,
           'data-language': lang === 'svg' ? 'svg' : 'xml',
+          ...metaAttrs,
         };
         node.children = [];
         continue;
@@ -106,6 +121,7 @@ const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
           ...node.properties,
           className: ['mermaid-container'],
           'data-mermaid': code,
+          ...metaAttrs,
         };
         continue;
       }
@@ -123,6 +139,7 @@ const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
             Boolean,
           ),
           'data-language': lang,
+          ...metaAttrs,
         };
         node.children = [{ type: 'raw', value: html }] as any;
       } catch {
