@@ -32,6 +32,7 @@
 .markdown-theme-light,
 .markdown-theme-auto {
   --md-bg: #ffffff;
+  --md-body-bg: #ffffff;
   --md-text: #1f2328;
   --md-text-secondary: #656d76;
   --md-border: #d0d7de;
@@ -47,6 +48,7 @@
 /* Dark 主题 */
 .markdown-theme-dark {
   --md-bg: #0d1117;
+  --md-body-bg: transparent;
   --md-text: #e6edf3;
   --md-text-secondary: #8b949e;
   --md-border: #30363d;
@@ -62,6 +64,7 @@
 @media (prefers-color-scheme: dark) {
   .markdown-theme-auto {
     --md-bg: #0d1117;
+    --md-body-bg: transparent;
     --md-text: #e6edf3;
     --md-text-secondary: #8b949e;
     --md-border: #30363d;
@@ -85,7 +88,7 @@
   font-size: var(--md-font-size-base);
   line-height: var(--md-line-height);
   color: var(--md-text);
-  background: var(--md-bg);
+  background: var(--md-body-bg, var(--md-bg));
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
@@ -341,21 +344,27 @@
 .markdown-body .svg-preview-container {
   position: relative;
   margin: var(--md-spacing-md) 0;
-  border: 1px solid rgba(208, 215, 222, 0.4);
-  border-radius: var(--md-radius);
-  background: var(--md-bg);
+  width: fit-content;
+  max-width: min(100%, 700px);
+  max-height: 900px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   overflow: auto;
 }
 
 .markdown-body .svg-preview-frame {
-  display: flex;
-  justify-content: center;
+  display: block;
+  width: max-content;
   padding: var(--md-spacing-md);
 }
 
 .markdown-body .svg-preview-frame svg {
-  max-width: 100%;
+  display: block;
+  width: auto;
   height: auto;
+  max-width: none;
+  max-height: none;
 }
 
 .markdown-body .svg-preview-error {
