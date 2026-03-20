@@ -346,7 +346,7 @@
   margin: var(--md-spacing-md) 0;
   width: fit-content;
   max-width: min(100%, 700px);
-  max-height: 900px;
+  max-height: 700px;
   border: none;
   border-radius: 0;
   background: transparent;
