@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   MarkdownProvider,
   MarkdownRenderer,
@@ -75,7 +75,18 @@ const SITE_TEXT = {
       getStarted: 'Get Started',
       viewDocs: 'View Documentation',
     },
-    footer: 'Markdown v1.0.0 — MIT License — Built with React + unified',
+    footer: {
+      desc: 'A production-grade Markdown rendering & editing component for React.',
+      resources: 'Resources',
+      community: 'Community',
+      docs: 'Documentation',
+      changelog: 'Changelog',
+      examples: 'Examples',
+      issues: 'Issues',
+      discussions: 'Discussions',
+      contributing: 'Contributing',
+      copyright: '© 2025 XCan Cloud. MIT License.',
+    },
   },
   zh: {
     nav: { features: '特性', demo: '演示', code: '代码', github: 'GitHub' },
@@ -134,7 +145,18 @@ const SITE_TEXT = {
       getStarted: '快速开始',
       viewDocs: '查看文档',
     },
-    footer: 'Markdown v1.0.0 — MIT 许可证 — 基于 React + unified 构建',
+    footer: {
+      desc: '一个生产级 React Markdown 渲染与编辑组件。',
+      resources: '资源',
+      community: '社区',
+      docs: '文档',
+      changelog: '更新日志',
+      examples: '示例',
+      issues: '问题反馈',
+      discussions: '讨论',
+      contributing: '贡献指南',
+      copyright: '© 2025 XCan Cloud. MIT 许可证。',
+    },
   },
 };
 
@@ -455,6 +477,25 @@ const App: React.FC = () => {
     });
   }, []);
 
+  // Scroll-triggered reveal animation
+  useEffect(() => {
+    const els = document.querySelectorAll('.reveal');
+    if (!els.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 },
+    );
+    els.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  });
+
   return (
     <div>
       {/* Navigation */}
@@ -468,7 +509,8 @@ const App: React.FC = () => {
             <a href="#features">{t.nav.features}</a>
             <a href="#demo">{t.nav.demo}</a>
             <a href="#code">{t.nav.code}</a>
-            <a href="https://github.com/xcancloud/Markdown" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/xcancloud/Markdown" target="_blank" rel="noopener noreferrer" className="nav-github">
+              <svg className="nav-github-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
               {t.nav.github}
             </a>
           </div>
@@ -499,6 +541,7 @@ const App: React.FC = () => {
             </a>
           </div>
           <div className="hero-install">
+            <span className="install-prefix">$</span>
             <code>npm install @xcan-cloud/markdown</code>
             <button className="copy-btn" onClick={handleCopyInstall} aria-label="Copy install command">
               {copied ? '✅' : '📋'}
@@ -510,9 +553,9 @@ const App: React.FC = () => {
       {/* Stats */}
       <section className="stats">
         <div className="container">
-          <div className="stats-grid">
-            {t.stats.map((s) => (
-              <div key={s.label} className="stat-item">
+          <div className="stats-grid reveal-stagger">
+            {t.stats.map((s, i) => (
+              <div key={s.label} className="stat-item reveal" style={{ '--reveal-i': i } as React.CSSProperties}>
                 <h3>{s.value}</h3>
                 <p>{s.label}</p>
               </div>
@@ -528,9 +571,9 @@ const App: React.FC = () => {
             <h2>{t.features.heading}</h2>
             <p>{t.features.subheading}</p>
           </div>
-          <div className="feature-grid">
-            {t.features.items.map((f) => (
-              <div key={f.title} className="feature-card">
+          <div className="feature-grid reveal-stagger">
+            {t.features.items.map((f, i) => (
+              <div key={f.title} className="feature-card reveal" style={{ '--reveal-i': i } as React.CSSProperties}>
                 <div className="feature-icon" style={{ background: f.color }}>
                   {f.icon}
                 </div>
@@ -545,7 +588,7 @@ const App: React.FC = () => {
       {/* Live Demo / Showcase */}
       <section className="showcase" id="demo">
         <div className="container">
-          <div className="section-header">
+          <div className="section-header reveal">
             <h2>{t.demo.heading}</h2>
             <p>{t.demo.subheading}</p>
           </div>
@@ -604,7 +647,7 @@ const App: React.FC = () => {
       {/* Code Examples */}
       <section className="code-examples" id="code">
         <div className="container">
-          <div className="section-header">
+          <div className="section-header reveal">
             <h2>{t.code.heading}</h2>
             <p>{t.code.subheading}</p>
           </div>
@@ -630,8 +673,8 @@ const App: React.FC = () => {
       {/* CTA */}
       <section className="cta">
         <div className="container">
-          <h2>{t.cta.heading}</h2>
-          <p>{t.cta.subheading}</p>
+          <h2 className="reveal">{t.cta.heading}</h2>
+          <p className="reveal">{t.cta.subheading}</p>
           <div className="hero-actions">
             <a className="btn btn-primary" href="https://github.com/xcancloud/Markdown" target="_blank" rel="noopener noreferrer">
               {t.cta.getStarted}
@@ -646,12 +689,34 @@ const App: React.FC = () => {
       {/* Footer */}
       <footer className="site-footer">
         <div className="container">
-          <div className="footer-links">
-            <a href="https://github.com/xcancloud/Markdown" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href="https://github.com/xcancloud/Markdown/issues" target="_blank" rel="noopener noreferrer">Issues</a>
-            <a href="https://github.com/xcancloud/Markdown/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License</a>
+          <div className="footer-inner">
+            <div>
+              <div className="footer-brand">
+                <span className="nav-logo">A</span>
+                Markdown
+              </div>
+              <p className="footer-desc">{t.footer.desc}</p>
+            </div>
+            <div className="footer-col">
+              <span className="footer-col-title">{t.footer.resources}</span>
+              <a href="https://github.com/xcancloud/Markdown#readme" target="_blank" rel="noopener noreferrer">{t.footer.docs}</a>
+              <a href="https://github.com/xcancloud/Markdown/releases" target="_blank" rel="noopener noreferrer">{t.footer.changelog}</a>
+              <a href="https://github.com/xcancloud/Markdown/tree/main/website" target="_blank" rel="noopener noreferrer">{t.footer.examples}</a>
+            </div>
+            <div className="footer-col">
+              <span className="footer-col-title">{t.footer.community}</span>
+              <a href="https://github.com/xcancloud/Markdown/issues" target="_blank" rel="noopener noreferrer">{t.footer.issues}</a>
+              <a href="https://github.com/xcancloud/Markdown/discussions" target="_blank" rel="noopener noreferrer">{t.footer.discussions}</a>
+              <a href="https://github.com/xcancloud/Markdown/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">{t.footer.contributing}</a>
+            </div>
           </div>
-          <p>{t.footer}</p>
+          <div className="footer-bottom">
+            <p>{t.footer.copyright}</p>
+            <div className="footer-bottom-links">
+              <a href="https://github.com/xcancloud/Markdown/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+              <a href="https://github.com/xcancloud" target="_blank" rel="noopener noreferrer">GitHub</a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
