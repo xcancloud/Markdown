@@ -20,6 +20,8 @@
 - **Math Rendering** — Inline & block KaTeX formulas (`$...$` and `$$...$$`)
 - **Mermaid Diagrams** — Flowcharts, sequence, gantt, class diagrams (lazy-loaded)
 - **Rich Editor** — CodeMirror 6 with toolbar, image paste/drop, auto-save, customizable shortcuts
+- **Lucide Icons** — Beautiful [lucide-react](https://lucide.dev/) icons in toolbar and code block actions
+- **Code Block Extensions** — Extended attributes syntax (`filename=`, `dir=`, etc.) with parsing utilities
 - **Theme System** — Light / Dark / Auto (system) with CSS Custom Properties
 - **Internationalization** — Built-in `en-US` and `zh-CN` locale support
 - **TOC Generation** — Auto-generated Table of Contents sidebar with active heading tracking
@@ -274,10 +276,66 @@ The `toolbar` prop accepts several forms:
 
 #### Code Block Actions
 
-Code blocks in the rendered preview include:
-- **Copy** — Copies code to clipboard
-- **Download** — Downloads code as `code-snippet.{ext}` (extension mapped from language identifier, e.g., `js` → `.js`, `python` → `.py`, fallback `.txt`)
-- **Preview** — Only shown for `html` code blocks; renders HTML in a sandboxed iframe modal (`sandbox="allow-scripts"`, no `allow-same-origin`)
+Code blocks in the rendered preview include action buttons powered by [lucide-react](https://lucide.dev/) icons:
+- **Copy** (clipboard icon) — Copies code to clipboard with check-mark feedback
+- **Download** (download icon) — Downloads code as `code-snippet.{ext}` (extension mapped from language identifier, e.g., `js` → `.js`, `python` → `.py`, fallback `.txt`)
+- **Preview** (eye icon) — Only shown for `html` code blocks; renders HTML in a sandboxed iframe modal (`sandbox="allow-scripts"`, no `allow-same-origin`)
+
+#### Code Block Extended Attributes
+
+Code blocks support extended attributes in the fence line after the language identifier. Attributes are specified as `key=value` pairs:
+
+**Standard syntax:**
+
+````markdown
+```python
+print("Hello")
+```
+````
+
+**Extended syntax with attributes:**
+
+````markdown
+```python filename=hello.py dir=src/hello.py
+print("Hello")
+```
+````
+
+Attributes are rendered as `data-*` attributes on the code block HTML element:
+
+```html
+<div class="code-block" data-language="python" data-meta="filename=hello.py dir=src/hello.py" data-filename="hello.py" data-dir="src/hello.py">
+  ...
+</div>
+```
+
+**Supported value formats:**
+
+| Format | Example |
+|--------|---------|
+| Unquoted | `filename=hello.py` |
+| Double-quoted | `filename="my file.py"` |
+| Single-quoted | `filename='hello.py'` |
+| Brace-enclosed | `highlight={1,3-5}` |
+
+**Parsing utilities** — Use these functions to extract code block metadata externally:
+
+```tsx
+import { parseCodeMeta, extractCodeBlocks } from '@xcan-cloud/markdown';
+
+// Parse a meta string
+const attrs = parseCodeMeta('filename=hello.py dir=src');
+// => { filename: 'hello.py', dir: 'src' }
+
+// Extract all code blocks from Markdown source
+const blocks = extractCodeBlocks(markdownSource);
+blocks.forEach(block => {
+  console.log(block.language);    // 'python'
+  console.log(block.meta);        // 'filename=hello.py dir=src'
+  console.log(block.attributes);  // { filename: 'hello.py', dir: 'src' }
+  console.log(block.code);        // 'print("Hello")'
+});
+```
 
 ### `<MarkdownViewer />`
 
@@ -406,12 +464,17 @@ src/
 │   ├── MarkdownViewer    # Lightweight SSR-friendly viewer
 │   ├── ThemeSwitcher     # Theme toggle component
 │   ├── LocaleSwitcher    # Locale toggle component
-│   └── ToolbarIcon       # Toolbar icon mapping
+│   └── ToolbarIcon       # Toolbar icon mapping (lucide-react)
 ├── context/              # React Context providers
 │   └── MarkdownProvider
 ├── core/                 # Processing pipeline
 │   ├── processor         # unified pipeline
 │   ├── plugins/          # remark/rehype plugins
+│   │   ├── remark-code-meta  # Code block extended attributes
+│   │   └── ...
+│   ├── utils/
+│   │   ├── code-meta     # Code fence meta parsing utilities
+│   │   └── code-download # Code download with language mapping
 │   ├── security          # URL sanitization, XSS prevention
 │   ├── accessibility     # ARIA, a11y rehype plugin
 │   └── performance       # Web Worker, cache, chunking

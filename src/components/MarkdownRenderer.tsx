@@ -17,6 +17,12 @@ import { sanitizeSvgMarkup } from '../core/utils/svg-sanitize';
 import { useTheme } from '../context/MarkdownProvider';
 import { useLocale } from '../context/MarkdownProvider';
 
+// Lucide icon SVG strings for DOM-injected code block action buttons
+const ICON_COPY = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+const ICON_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+const ICON_DOWNLOAD = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>';
+const ICON_EYE = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>';
+
 // ============================================================
 // Props 接口
 // ============================================================
@@ -224,17 +230,19 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
 
         const copyBtn = document.createElement('button');
         copyBtn.className = 'copy-button';
-        copyBtn.textContent = messages.renderer.copyCode;
+        copyBtn.innerHTML = ICON_COPY;
+        copyBtn.title = messages.renderer.copyCode;
         copyBtn.addEventListener('click', async () => {
           await copyToClipboard(raw);
-          copyBtn.textContent = messages.renderer.copied;
-          setTimeout(() => (copyBtn.textContent = messages.renderer.copyCode), 2000);
+          copyBtn.innerHTML = ICON_CHECK;
+          setTimeout(() => (copyBtn.innerHTML = ICON_COPY), 2000);
         });
         actionsDiv.appendChild(copyBtn);
 
         const downloadBtn = document.createElement('button');
         downloadBtn.className = 'download-button';
-        downloadBtn.textContent = messages.renderer.download;
+        downloadBtn.innerHTML = ICON_DOWNLOAD;
+        downloadBtn.title = messages.renderer.download;
         downloadBtn.addEventListener('click', () => {
           triggerCodeDownload(raw, 'svg');
         });
@@ -257,32 +265,36 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
 
         const lang = (block.getAttribute('data-language') ?? '').toLowerCase();
         const code = block.querySelector('code')?.textContent ?? '';
+        const metaFilename = block.getAttribute('data-filename') ?? undefined;
 
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'code-block-actions';
 
         const copyBtn = document.createElement('button');
         copyBtn.className = 'copy-button';
-        copyBtn.textContent = messages.renderer.copyCode;
+        copyBtn.innerHTML = ICON_COPY;
+        copyBtn.title = messages.renderer.copyCode;
         copyBtn.addEventListener('click', async () => {
           await copyToClipboard(code);
-          copyBtn.textContent = messages.renderer.copied;
-          setTimeout(() => (copyBtn.textContent = messages.renderer.copyCode), 2000);
+          copyBtn.innerHTML = ICON_CHECK;
+          setTimeout(() => (copyBtn.innerHTML = ICON_COPY), 2000);
         });
         actionsDiv.appendChild(copyBtn);
 
         const downloadBtn = document.createElement('button');
         downloadBtn.className = 'download-button';
-        downloadBtn.textContent = messages.renderer.download;
+        downloadBtn.innerHTML = ICON_DOWNLOAD;
+        downloadBtn.title = messages.renderer.download;
         downloadBtn.addEventListener('click', () => {
-          triggerCodeDownload(code, lang);
+          triggerCodeDownload(code, lang, metaFilename);
         });
         actionsDiv.appendChild(downloadBtn);
 
         if (lang === 'html') {
           const previewBtn = document.createElement('button');
           previewBtn.className = 'preview-button';
-          previewBtn.textContent = messages.renderer.preview;
+          previewBtn.innerHTML = ICON_EYE;
+          previewBtn.title = messages.renderer.preview;
           previewBtn.addEventListener('click', () => {
             showHtmlPreview(code, messages.renderer.closePreview);
           });

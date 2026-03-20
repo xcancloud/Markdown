@@ -16,6 +16,7 @@ import rehypeHighlightCode from './plugins/rehype-highlight-code';
 import { remarkAlert } from './plugins/remark-alert';
 import { remarkContainer } from './plugins/remark-container';
 import { remarkToc } from './plugins/toc-generator';
+import { remarkCodeMeta } from './plugins/remark-code-meta';
 import { rehypeA11y } from './accessibility';
 
 import type { Root as MdastRoot } from 'mdast';
@@ -90,6 +91,9 @@ export function createProcessor(options: ProcessorOptions = {}) {
   // 自定义容器指令 (:::warning 等)
   processor = processor.use(remarkContainer);
 
+  // 代码块扩展属性 (```python filename=hello.py 等)
+  processor = processor.use(remarkCodeMeta);
+
   // TOC 插件 ([[toc]] / [toc] 替换)
   if (options.toc) processor = processor.use(remarkToc);
 
@@ -143,16 +147,14 @@ function createSanitizeSchema(opts: { math?: boolean; mermaid?: boolean }) {
   const schema = { ...defaultSchema };
   schema.attributes = { ...schema.attributes };
 
-  // Allow className, style, and id globally (needed by Shiki, KaTeX, alerts, containers, heading anchors)
+  // Allow className, style, id, and all data-* attributes globally
+  // (needed by Shiki, KaTeX, alerts, containers, heading anchors, code meta)
   schema.attributes!['*'] = [
     ...(schema.attributes!['*'] ?? []),
     'className',
     'style',
     'id',
-    'dataLanguage',
-    'dataMermaid',
-    'dataSvg',
-    'dataRendered',
+    'data*',
   ];
 
   // Allow div and span (used by Shiki code blocks, containers, alerts)

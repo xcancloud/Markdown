@@ -45,7 +45,8 @@ const SITE_TEXT = {
         { icon: '🌗', color: '#f3e5f5', title: 'Theme System', desc: 'Light, Dark, and Auto (system) themes with CSS Custom Properties. Fully customizable.' },
         { icon: '🌍', color: '#e3f2fd', title: 'Internationalization', desc: 'Built-in en-US and zh-CN locales. All toolbar tooltips, messages, and UI strings translate.' },
         { icon: '⚡', color: '#fff3e0', title: 'High Performance', desc: 'Debounced rendering, Web Worker support, render caching, and lazy-loading for heavy plugins.' },
-        { icon: '🔧', color: '#e8eaf6', title: 'Rich Editor', desc: 'CodeMirror 6 with toolbar, image paste & drop, auto-save, split/tab layouts.' },
+        { icon: '🔧', color: '#e8eaf6', title: 'Rich Editor', desc: 'CodeMirror 6 with lucide-react toolbar icons, image paste & drop, auto-save, split/tab layouts.' },
+        { icon: '🧩', color: '#e8f5e9', title: 'Code Block Extensions', desc: 'Extended attributes on code fences (filename, dir, etc.) with parsing utilities for external access.' },
         { icon: '🔒', color: '#fce4ec', title: 'Security First', desc: 'HTML sanitization, URL validation, XSS prevention. Safe by default with rehype-sanitize.' },
         { icon: '♿', color: '#e0f2f1', title: 'Accessible', desc: 'ARIA roles, keyboard navigation, screen reader support. Follows WCAG guidelines.' },
       ],
@@ -65,6 +66,7 @@ const SITE_TEXT = {
         provider: 'Theme & i18n',
         hook: 'useMarkdown Hook',
         streaming: 'SSE Streaming',
+        codeMeta: 'Code Block Meta',
       },
     },
     cta: {
@@ -102,7 +104,8 @@ const SITE_TEXT = {
         { icon: '🌗', color: '#f3e5f5', title: '主题系统', desc: '浅色、深色和跟随系统三种主题，基于 CSS 自定义属性，完全可定制。' },
         { icon: '🌍', color: '#e3f2fd', title: '国际化', desc: '内置中文和英文语言包，工具栏提示、消息和所有 UI 文本均可翻译。' },
         { icon: '⚡', color: '#fff3e0', title: '高性能', desc: '防抖渲染、Web Worker 支持、渲染缓存和重型插件懒加载。' },
-        { icon: '🔧', color: '#e8eaf6', title: '丰富编辑器', desc: '基于 CodeMirror 6，支持工具栏、图片粘贴与拖拽、自动保存、多布局模式。' },
+        { icon: '🔧', color: '#e8eaf6', title: '丰富编辑器', desc: '基于 CodeMirror 6，使用 lucide-react 图标工具栏，支持图片粘贴与拖拽、自动保存、多布局模式。' },
+        { icon: '🧩', color: '#e8f5e9', title: '代码块扩展属性', desc: '支持代码块扩展属性（filename、dir 等），提供解析工具供外部获取代码块内容和属性。' },
         { icon: '🔒', color: '#fce4ec', title: '安全优先', desc: 'HTML 净化、URL 校验、XSS 防护，默认使用 rehype-sanitize 保障安全。' },
         { icon: '♿', color: '#e0f2f1', title: '无障碍访问', desc: 'ARIA 角色、键盘导航、屏幕阅读器支持，遵循 WCAG 指南。' },
       ],
@@ -122,6 +125,7 @@ const SITE_TEXT = {
         provider: '主题与国际化',
         hook: 'useMarkdown Hook',
         streaming: 'SSE 流式渲染',
+        codeMeta: '代码块扩展属性',
       },
     },
     cta: {
@@ -145,7 +149,7 @@ Markdown supports **bold**, *italic*, ~~strikethrough~~, and \`inline code\`.
 
 ### Code Highlighting
 
-\`\`\`typescript
+\`\`\`typescript filename=App.tsx
 import { MarkdownEditor } from '@xcan-cloud/markdown';
 
 function App() {
@@ -157,6 +161,17 @@ function App() {
     />
   );
 }
+\`\`\`
+
+### Code Block Extended Attributes
+
+Code blocks support extended attributes after the language identifier:
+
+\`\`\`python filename=hello.py dir=src/hello.py
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
+
+print(greet("World"))
 \`\`\`
 
 ### Math Formulas
@@ -184,6 +199,8 @@ $$
 - [x] i18n (en-US / zh-CN)
 - [x] Code highlighting (30+ languages)
 - [x] KaTeX math rendering
+- [x] Code block extended attributes
+- [x] Lucide icons in toolbar & code blocks
 
 ### Alerts
 
@@ -206,7 +223,7 @@ Markdown 支持 **加粗**、*斜体*、~~删除线~~ 和 \`行内代码\`。
 
 ### 代码高亮
 
-\`\`\`typescript
+\`\`\`typescript filename=App.tsx
 import { MarkdownEditor } from '@xcan-cloud/markdown';
 
 function App() {
@@ -218,6 +235,17 @@ function App() {
     />
   );
 }
+\`\`\`
+
+### 代码块扩展属性
+
+代码块支持在语言标识符后添加扩展属性：
+
+\`\`\`python filename=hello.py dir=src/hello.py
+def greet(name: str) -> str:
+    return f"你好, {name}!"
+
+print(greet("世界"))
 \`\`\`
 
 ### 数学公式
@@ -245,6 +273,8 @@ $$
 - [x] 国际化（中文/英文）
 - [x] 代码高亮（30+ 种语言）
 - [x] KaTeX 数学公式渲染
+- [x] 代码块扩展属性
+- [x] Lucide 图标（工具栏和代码块）
 
 ### 提示框
 
@@ -364,6 +394,27 @@ function StreamingDemo() {
     </div>
   );
 }`,
+  codeMeta: `import { parseCodeMeta, extractCodeBlocks } from '@xcan-cloud/markdown';
+
+// Parse attributes from a code fence meta string
+const attrs = parseCodeMeta('filename=hello.py dir=src');
+console.log(attrs);
+// => { filename: 'hello.py', dir: 'src' }
+
+// Extract all code blocks from Markdown source
+const markdown = \`
+\\\`\\\`\\\`python filename=hello.py dir=src/hello.py
+print("Hello, World!")
+\\\`\\\`\\\`
+\`;
+
+const blocks = extractCodeBlocks(markdown);
+blocks.forEach(block => {
+  console.log(block.language);    // 'python'
+  console.log(block.meta);        // 'filename=hello.py dir=src/hello.py'
+  console.log(block.attributes);  // { filename: 'hello.py', dir: 'src/hello.py' }
+  console.log(block.code);        // 'print("Hello, World!")'
+});`,
 };
 
 // ============================================================

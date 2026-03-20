@@ -25,6 +25,14 @@ export {
 } from './core/plugins/toc-generator';
 export { remarkAlert } from './core/plugins/remark-alert';
 export { remarkContainer } from './core/plugins/remark-container';
+export { remarkCodeMeta } from './core/plugins/remark-code-meta';
+
+// --- Code block utilities ---
+export {
+  parseCodeMeta,
+  extractCodeBlocks,
+  type CodeBlockMeta,
+} from './core/utils/code-meta';
 
 // --- React 组件 ---
 export {
