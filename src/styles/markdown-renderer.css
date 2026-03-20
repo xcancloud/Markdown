@@ -536,6 +536,34 @@
   background-color: var(--md-code-bg) !important;
 }
 
+/* Activate Shiki dual-theme dark color variables in dark mode.
+   Shiki generates: color:#light; --shiki-dark:#dark
+   Without these rules, light-theme colors show on dark backgrounds. */
+.markdown-theme-dark .markdown-body .code-block .shiki,
+.markdown-theme-dark .markdown-body .code-block .shiki pre,
+.markdown-theme-github-dark .markdown-body .code-block .shiki,
+.markdown-theme-github-dark .markdown-body .code-block .shiki pre {
+  color: var(--shiki-dark) !important;
+  background-color: var(--md-code-bg) !important;
+}
+
+.markdown-theme-dark .markdown-body .code-block .shiki span,
+.markdown-theme-github-dark .markdown-body .code-block .shiki span {
+  color: var(--shiki-dark) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .markdown-theme-auto .markdown-body .code-block .shiki,
+  .markdown-theme-auto .markdown-body .code-block .shiki pre {
+    color: var(--shiki-dark) !important;
+    background-color: var(--md-code-bg) !important;
+  }
+
+  .markdown-theme-auto .markdown-body .code-block .shiki span {
+    color: var(--shiki-dark) !important;
+  }
+}
+
 /* Streaming cursor animation */
 .markdown-body.streaming::after {
   content: '▎';
