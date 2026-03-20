@@ -1,6 +1,5 @@
 <p align="center">
   <img src="https://img.shields.io/npm/v/@xcan-cloud/markdown?color=blue" alt="npm version" />
-  <img src="https://img.shields.io/npm/l/@xcan-cloud/markdown" alt="license" />
   <img src="https://img.shields.io/badge/react-%3E%3D18.0.0-61dafb" alt="react" />
   <img src="https://img.shields.io/badge/typescript-5.x-3178c6" alt="typescript" />
 </p>
