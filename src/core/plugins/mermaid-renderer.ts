@@ -53,9 +53,14 @@ export async function renderMermaidDiagram(
     const { svg } = await mermaid.render(id, code);
     return svg;
   } catch (error) {
-    return createErrorBlock(
-      error instanceof Error ? error.message : 'Mermaid render error',
-    );
+    let msg = error instanceof Error ? error.message : 'Mermaid render error';
+    // 移除 mermaid 版本号等冗余信息（如 "mermaid version 11.13.0"）
+    msg = msg
+      .split('\n')
+      .filter((line) => !/mermaid\s+version\s+/i.test(line.trim()))
+      .join('\n')
+      .trim() || 'Mermaid render error';
+    return createErrorBlock(msg);
   }
 }
 
