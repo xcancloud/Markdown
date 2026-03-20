@@ -265,6 +265,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
 
         const lang = (block.getAttribute('data-language') ?? '').toLowerCase();
         const code = block.querySelector('code')?.textContent ?? '';
+        const metaFilename = block.getAttribute('data-filename') ?? undefined;
 
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'code-block-actions';
@@ -285,7 +286,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
         downloadBtn.innerHTML = ICON_DOWNLOAD;
         downloadBtn.title = messages.renderer.download;
         downloadBtn.addEventListener('click', () => {
-          triggerCodeDownload(code, lang);
+          triggerCodeDownload(code, lang, metaFilename);
         });
         actionsDiv.appendChild(downloadBtn);
 

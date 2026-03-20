@@ -92,13 +92,46 @@ export function parseCodeDownloadMeta(
   return { basename: 'code-snippet', ext: extFromLang };
 }
 
-export function triggerCodeDownload(code: string, lang: string): void {
+/**
+ * Resolve the download filename.  When a `metaFilename` is provided (e.g.
+ * from the code fence `filename=App.tsx` attribute) it takes priority.
+ * Otherwise fall back to scanning the code content for filename directives
+ * via {@link parseCodeDownloadMeta}.
+ */
+export function resolveDownloadFilename(
+  code: string,
+  lang: string,
+  metaFilename?: string,
+): string {
+  if (metaFilename) {
+    const sanitized = metaFilename
+      .split(/[/\\]/).pop()!              // strip path segments
+      .replace(/[*?"<>|]/g, '_')          // remove unsafe chars
+      .replace(/\s+/g, '_')
+      .slice(0, 200);
+    if (sanitized) {
+      // If the provided name already contains an extension, use it as-is
+      const dot = sanitized.lastIndexOf('.');
+      if (dot > 0 && dot < sanitized.length - 1) {
+        return sanitized;
+      }
+      // Otherwise append the language-mapped extension
+      const extFromLang = CODE_LANG_EXT_MAP[lang.toLowerCase()] || 'txt';
+      return `${sanitized}.${extFromLang}`;
+    }
+  }
+
   const { basename, ext } = parseCodeDownloadMeta(code, lang);
+  return `${basename}.${ext}`;
+}
+
+export function triggerCodeDownload(code: string, lang: string, metaFilename?: string): void {
+  const filename = resolveDownloadFilename(code, lang, metaFilename);
   const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${basename}.${ext}`;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
