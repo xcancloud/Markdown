@@ -1,47 +1,62 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/react-%3E%3D18.0.0-61dafb" alt="react" />
-  <img src="https://img.shields.io/badge/typescript-5.x-3178c6" alt="typescript" />
-</p>
+<div align="center">
 
 # Markdown
 
-> Production-grade, extensible, high-performance Markdown rendering & editing component for React.
+[![npm version](https://img.shields.io/npm/v/@xcan-cloud/markdown?style=flat-square)](https://www.npmjs.com/package/@xcan-cloud/markdown)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](./LICENSE)
+[![React 18+](https://img.shields.io/badge/react-%3E%3D18-61dafb?style=flat-square)](https://react.dev/)
+
+Production-grade, extensible Markdown **rendering** and **editing** for React — CommonMark & GFM, math, Mermaid, Shiki highlighting, CodeMirror editor, themes, and i18n in one package.
+
+[English](./README.md) · [简体中文](./README.zh-CN.md) · [Repository](https://github.com/xcancloud/Markdown) · [npm](https://www.npmjs.com/package/@xcan-cloud/markdown)
+
+</div>
 
 ---
+
+## Table of Contents
+
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [API Reference](#api-reference)
+- [ProcessorOptions](#processoroptions)
+- [Exported Utilities](#exported-utilities)
+- [Hooks](#hooks)
+- [Component Architecture](#component-architecture)
+- [Sub-Projects](#sub-projects)
+- [Customization](#customization)
+- [Technology Stack](#technology-stack)
+- [Browser Support](#browser-support)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
-- **Full Markdown Support** — CommonMark, GFM (tables, task lists, strikethrough, footnotes, alerts)
-- **Syntax Highlighting** — 30+ languages via [Shiki](https://shiki.style/) with VS Code-level quality
-- **Math Rendering** — Inline & block KaTeX formulas (`$...$` and `$$...$$`)
-- **Mermaid Diagrams** — Flowcharts, sequence, gantt, class diagrams (lazy-loaded)
-- **Rich Editor** — CodeMirror 6 with toolbar, image paste/drop, auto-save, customizable shortcuts
-- **Lucide Icons** — Beautiful [lucide-react](https://lucide.dev/) icons in toolbar and code block actions
-- **Code Block Extensions** — Extended attributes syntax (`filename=`, `dir=`, etc.) with parsing utilities
-- **Theme System** — Light / Dark / Auto (system) with CSS Custom Properties
-- **Internationalization** — Built-in `en-US` and `zh-CN` locale support
-- **TOC Generation** — Auto-generated Table of Contents sidebar with active heading tracking
-- **Custom Containers** — `:::warning`, `:::tip`, `:::note` directives
-- **GFM Alerts** — `> [!NOTE]`, `> [!WARNING]`, `> [!TIP]`, etc.
-- **Emoji Support** — `:smile:` → 😄
-- **Front Matter** — YAML metadata parsing
-- **Security** — HTML sanitization, URL sanitization, XSS prevention
-- **Accessibility** — ARIA roles, keyboard navigation, screen reader support
-- **Performance** — Debounced rendering, Web Worker support, render caching
-- **Three Themes** — GitHub, Notion, Typora presets
-- **Dual Output** — ESM + CJS with full TypeScript types
-- **Tree-shakeable** — Import only what you need
+- **CommonMark & GFM** — Tables, task lists, strikethrough, footnotes, autolinks
+- **Syntax Highlighting** — 30+ languages via [Shiki](https://shiki.style/) (VS Code–quality themes)
+- **Math** — Inline and block KaTeX (`$...$`, `$$...$$`)
+- **Mermaid** — Flowcharts, sequence, Gantt, class diagrams (lazy client render)
+- **SVG Preview** — Fenced ` ```svg ` or ` ```xml ` with SVG content renders as a **sanitized** inline preview (copy / download when not streaming)
+- **Rich Editor** — CodeMirror 6, toolbar, split/tabs layouts, image paste/drop, auto-save, shortcuts
+- **Code Block UX** — Copy, download (language-based extension; optional `file:` / comment meta for filename), HTML sandbox preview
+- **GFM Alerts & Containers** — `> [!NOTE]` / `> [!WARNING]` and `:::tip` / `:::warning` directives
+- **TOC Sidebar** — Auto-generated outline with active heading tracking (`MarkdownRenderer`)
+- **Front Matter** — YAML (and TOML) metadata via remark-frontmatter
+- **Emoji** — `:smile:` shortcodes (remark-emoji)
+- **Security** — rehype-sanitize schema, URL handling, XSS-oriented defaults
+- **Accessibility** — rehype a11y helpers, ARIA-oriented output
+- **Streaming** — `streaming` prop for live SSE/chunked content (debounce bypass, cursor affordance)
+- **Themes** — Light / Dark / Auto + CSS variables; presets: GitHub (default), Notion, Typora
+- **i18n** — `en-US` and `zh-CN` built-in
+- **Dual Build** — ESM + CJS, TypeScript declarations, tree-shakeable entry
 
----
+## Quick Start
 
-## Installation
+### Installation
 
 ```bash
 npm install @xcan-cloud/markdown
-# or
-yarn add @xcan-cloud/markdown
-# or
-pnpm add @xcan-cloud/markdown
 ```
 
 Peer dependencies:
@@ -50,9 +65,11 @@ Peer dependencies:
 npm install react react-dom
 ```
 
----
+Import styles once in your app:
 
-## Quick Start
+```tsx
+import '@xcan-cloud/markdown/styles';
+```
 
 ### Basic Rendering
 
@@ -61,11 +78,11 @@ import { MarkdownRenderer } from '@xcan-cloud/markdown';
 import '@xcan-cloud/markdown/styles';
 
 function App() {
-  return <MarkdownRenderer source="# Hello World\n\nThis is **Markdown**!" />;
+  return <MarkdownRenderer source="# Hello\n\nThis is **Markdown**." />;
 }
 ```
 
-### Full Editor
+### Editor (split view)
 
 ```tsx
 import { MarkdownEditor } from '@xcan-cloud/markdown';
@@ -74,7 +91,7 @@ import '@xcan-cloud/markdown/styles';
 function App() {
   return (
     <MarkdownEditor
-      initialValue="# Start editing..."
+      initialValue="# Start editing…"
       layout="split"
       onChange={(value) => console.log(value)}
     />
@@ -82,7 +99,7 @@ function App() {
 }
 ```
 
-### With Theme & i18n Provider
+### Theme & Locale Provider
 
 ```tsx
 import {
@@ -100,409 +117,266 @@ function App() {
         <ThemeSwitcher />
         <LocaleSwitcher />
       </div>
-      <MarkdownEditor initialValue="# Hello!" layout="split" />
+      <MarkdownEditor initialValue="# Hello" layout="split" />
     </MarkdownProvider>
   );
 }
 ```
 
-### Hook Usage
+### SSR-Friendly Viewer (no CodeMirror)
 
 ```tsx
-import { useMarkdown } from '@xcan-cloud/markdown';
-
-function MyComponent() {
-  const { html, toc, isLoading, error } = useMarkdown('# Hello', {
-    gfm: true,
-    math: true,
-  });
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
-}
-```
-
-### SSE Streaming Integration
-
-```tsx
-import { useState, useEffect } from 'react';
-import { MarkdownRenderer } from '@xcan-cloud/markdown';
+import { MarkdownViewer } from '@xcan-cloud/markdown';
 import '@xcan-cloud/markdown/styles';
 
-function StreamingDemo() {
-  const [content, setContent] = useState('');
-  const [streaming, setStreaming] = useState(false);
-
-  const startStream = () => {
-    setContent('');
-    setStreaming(true);
-
-    const eventSource = new EventSource('/api/chat/stream');
-
-    eventSource.onmessage = (event) => {
-      const token = JSON.parse(event.data).token;
-      setContent((prev) => prev + token);
-    };
-
-    eventSource.addEventListener('done', () => {
-      eventSource.close();
-      setStreaming(false);
-    });
-
-    eventSource.onerror = () => {
-      eventSource.close();
-      setStreaming(false);
-    };
-  };
-
-  return (
-    <div>
-      <button onClick={startStream} disabled={streaming}>
-        {streaming ? 'Streaming...' : 'Start Stream'}
-      </button>
-      <MarkdownRenderer
-        source={content}
-        streaming={streaming}
-        onStreamEnd={() => console.log('Stream ended')}
-        showToc={false}
-      />
-    </div>
-  );
+function Page({ markdown }: { markdown: string }) {
+  return <MarkdownViewer source={markdown} theme="light" />;
 }
 ```
 
-You can also use `fetch` with streaming:
-
-```tsx
-async function fetchStream() {
-  setContent('');
-  setStreaming(true);
-
-  const response = await fetch('/api/chat', {
-    method: 'POST',
-    body: JSON.stringify({ prompt: 'Hello' }),
-  });
-
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    const chunk = decoder.decode(value, { stream: true });
-    setContent((prev) => prev + chunk);
-  }
-
-  setStreaming(false);
-}
-```
-
----
-
-## Components
+## API Reference
 
 ### `<MarkdownRenderer />`
 
-Full-featured renderer with TOC sidebar, Mermaid post-processing, copy/download/preview buttons on code blocks, and SSE streaming support.
+Full-featured renderer: TOC, Mermaid/SVG post-processing, code actions, streaming.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `source` | `string` | — | Markdown source text |
-| `options` | `ProcessorOptions` | `{}` | Processor pipeline options |
-| `theme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | Theme mode |
+| --- | --- | --- | --- |
+| `source` | `string` | — | Markdown source |
+| `options` | `ProcessorOptions` | — | Unified pipeline options |
+| `className` | `string` | `''` | Root element class |
+| `theme` | `'light' \| 'dark' \| 'auto'` | from context / `'auto'` | Color mode |
 | `showToc` | `boolean` | `true` | Show TOC sidebar |
-| `tocPosition` | `'left' \\| 'right'` | `'right'` | TOC sidebar position |
-| `debounceMs` | `number` | `150` | Debounce delay (ms) |
-| `className` | `string` | `''` | Custom CSS class |
-| `onRendered` | `(info) => void` | — | Callback after render |
-| `onLinkClick` | `(href, event) => void` | — | Link click interceptor |
-| `onImageClick` | `(src, alt, event) => void` | — | Image click handler |
-| `components` | `Partial<ComponentMap>` | — | Custom element renderers |
-| `streaming` | `boolean` | `false` | Whether currently receiving streaming content (shows blinking cursor, bypasses debounce) |
-| `onStreamEnd` | `() => void` | — | Callback fired when `streaming` transitions from `true` to `false` |
+| `tocPosition` | `'left' \| 'right'` | `'right'` | TOC placement |
+| `debounceMs` | `number` | `150` | Render debounce (disabled while `streaming`) |
+| `onRendered` | `(info: { html: string; toc: TocItem[] }) => void` | — | After successful render |
+| `onLinkClick` | `(href: string, event: MouseEvent) => void` | — | Link click hook |
+| `onImageClick` | `(src: string, alt: string, event: MouseEvent) => void` | — | Image click hook |
+| `components` | `Partial<Record<string, ComponentType<any>>>` | — | Custom HTML tag mapping |
+| `streaming` | `boolean` | `false` | Live stream mode |
+| `onStreamEnd` | `() => void` | — | Fired when `streaming` goes `true` → `false` |
 
 ### `<MarkdownEditor />`
 
-CodeMirror 6-based editor with toolbar, split/tab layouts, image paste & drop.
+Extends renderer props **except** `source` is replaced by editor value APIs.
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `initialValue` | `string` | `''` | Initial content |
+| --- | --- | --- | --- |
+| `initialValue` | `string` | `''` | Initial markdown |
 | `value` | `string` | — | Controlled value |
-| `onChange` | `(value) => void` | — | Change callback |
-| `layout` | `'split' \| 'tabs' \| 'editor-only' \| 'preview-only'` | `'split'` | Layout mode |
-| `toolbar` | `ToolbarConfig` | — | Toolbar configuration (see below) |
-| `readOnly` | `boolean` | `false` | Read-only mode |
-| `onImageUpload` | `(file) => Promise<string>` | — | Image upload handler |
-| `onAutoSave` | `(value) => void` | — | Auto-save callback |
+| `onChange` | `(value: string) => void` | — | Content change |
+| `layout` | `LayoutMode` | `'split'` | `split` \| `tabs` \| `editor-only` \| `preview-only` |
+| `minHeight` / `maxHeight` | `string` | — | Editor area sizing |
+| `toolbar` | `ToolbarConfig` | default set | `false` to hide, or item list |
+| `readOnly` | `boolean` | `false` | Read-only editor |
+| `onImageUpload` | `(file: File) => Promise<string>` | — | Return URL for pasted/dropped images |
+| `onAutoSave` | `(value: string) => void` | — | Periodic save callback |
 | `autoSaveInterval` | `number` | `30000` | Auto-save interval (ms) |
-| `extensions` | `Extension[]` | `[]` | Additional CM extensions |
-| `maxLength` | `number` | — | Maximum character count. When set, a counter is displayed below the editor and input beyond the limit is truncated |
+| `extensions` | `Extension[]` | `[]` | Extra CodeMirror extensions |
+| `shortcuts` | `ShortcutMap` | — | Custom keymap handlers |
+| `maxLength` | `number` | — | Hard limit + counter UI |
 
-#### Toolbar Configuration
-
-The `toolbar` prop accepts several forms:
-
-```tsx
-// Hide toolbar completely
-<MarkdownEditor toolbar={false} />
-
-// Show only specific items
-<MarkdownEditor toolbar={['bold', 'italic', '|', 'code', 'codeblock']} />
-
-// Object form (legacy)
-<MarkdownEditor toolbar={{ show: true, items: ['bold', 'italic'] }} />
-
-// Default: show all toolbar items
-<MarkdownEditor />
-```
-
-**Available `ToolbarItem` identifiers:**
-
-`'bold'` | `'italic'` | `'strikethrough'` | `'heading'` | `'h1'`–`'h5'` | `'quote'` | `'code'` (inline) | `'codeblock'` (fenced) | `'link'` | `'image'` | `'table'` | `'ul'` | `'ol'` | `'task'` | `'hr'` | `'math'` | `'|'` (separator) | `'undo'` | `'redo'` | `'preview'` | `'fullscreen'` | `'layout'`
-
-#### Character Limit
-
-```tsx
-<MarkdownEditor maxLength={500} onChange={(v) => console.log(v)} />
-// Displays "128 / 500" counter below the editor
-```
-
-#### Code Block Actions
-
-Code blocks in the rendered preview include action buttons powered by [lucide-react](https://lucide.dev/) icons:
-- **Copy** (clipboard icon) — Copies code to clipboard with check-mark feedback
-- **Download** (download icon) — Downloads code as `code-snippet.{ext}` (extension mapped from language identifier, e.g., `js` → `.js`, `python` → `.py`, fallback `.txt`)
-- **Preview** (eye icon) — Only shown for `html` code blocks; renders HTML in a sandboxed iframe modal (`sandbox="allow-scripts"`, no `allow-same-origin`)
-
-#### Code Block Extended Attributes
-
-Code blocks support extended attributes in the fence line after the language identifier. Attributes are specified as `key=value` pairs:
-
-**Standard syntax:**
-
-````markdown
-```python
-print("Hello")
-```
-````
-
-**Extended syntax with attributes:**
-
-````markdown
-```python filename=hello.py dir=src/hello.py
-print("Hello")
-```
-````
-
-Attributes are rendered as `data-*` attributes on the code block HTML element:
-
-```html
-<div class="code-block" data-language="python" data-meta="filename=hello.py dir=src/hello.py" data-filename="hello.py" data-dir="src/hello.py">
-  ...
-</div>
-```
-
-**Supported value formats:**
-
-| Format | Example |
-|--------|---------|
-| Unquoted | `filename=hello.py` |
-| Double-quoted | `filename="my file.py"` |
-| Single-quoted | `filename='hello.py'` |
-| Brace-enclosed | `highlight={1,3-5}` |
-
-**Parsing utilities** — Use these functions to extract code block metadata externally:
-
-```tsx
-import { parseCodeMeta, extractCodeBlocks } from '@xcan-cloud/markdown';
-
-// Parse a meta string
-const attrs = parseCodeMeta('filename=hello.py dir=src');
-// => { filename: 'hello.py', dir: 'src' }
-
-// Extract all code blocks from Markdown source
-const blocks = extractCodeBlocks(markdownSource);
-blocks.forEach(block => {
-  console.log(block.language);    // 'python'
-  console.log(block.meta);        // 'filename=hello.py dir=src'
-  console.log(block.attributes);  // { filename: 'hello.py', dir: 'src' }
-  console.log(block.code);        // 'print("Hello")'
-});
-```
+All **`MarkdownRenderer`** props except `source` also apply to the preview pane (e.g. `options`, `theme`, `showToc`).
 
 ### `<MarkdownViewer />`
 
-Lightweight SSR-friendly viewer (no CodeMirror dependency).
+Lightweight viewer using `useMarkdown` (no CodeMirror).
 
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `source` | `string` | — | Markdown source text |
-| `options` | `ProcessorOptions` | `{}` | Processor options |
-| `theme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | Theme mode |
-| `className` | `string` | `''` | Custom CSS class |
-
-### `<ThemeSwitcher />`
-
-Toggle between Light / Dark / Auto themes. Uses `useTheme()` context.
-
-### `<LocaleSwitcher />`
-
-Toggle between `en-US` and `zh-CN`. Uses `useLocale()` context.
+| --- | --- | --- | --- |
+| `source` | `string` | — | Markdown source |
+| `options` | `ProcessorOptions` | — | Pipeline options |
+| `className` | `string` | `''` | Root class |
+| `theme` | `'light' \| 'dark' \| 'auto'` | from context | Theme |
+| `onRendered` | `(info: { html: string; toc: TocItem[] }) => void` | — | Note: `toc` is `[]` in viewer |
 
 ### `<MarkdownProvider />`
 
-Context provider for theme and locale. Wrap your app or section with this.
-
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `defaultTheme` | `ThemeMode` | `'auto'` | Initial theme |
-| `defaultLocale` | `Locale` | `'en-US'` | Initial locale |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | App subtree |
+| `defaultTheme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | Initial theme |
+| `defaultLocale` | `'en-US' \| 'zh-CN'` | `'en-US'` | Initial locale |
 
----
+### `<ThemeSwitcher />` / `<LocaleSwitcher />`
 
-## Theming
+Optional controls; read/write theme and locale via `useTheme()` / `useLocale()`.
 
-Markdown uses CSS Custom Properties for theming. Three built-in themes:
+### TypeScript (core props)
 
 ```tsx
-// GitHub style (default)
-import '@xcan-cloud/markdown/styles';
-
-// Notion style
-import '@xcan-cloud/markdown/themes/notion.css';
-
-// Typora style
-import '@xcan-cloud/markdown/themes/typora.css';
-```
-
-### Custom Theme
-
-Override CSS variables:
-
-```css
-.markdown-renderer {
-  --md-bg: #fafafa;
-  --md-text: #333;
-  --md-link: #0077cc;
-  --md-code-bg: #f0f0f0;
-  --md-border: #ddd;
-  /* ... */
+interface MarkdownRendererProps {
+  source: string;
+  options?: ProcessorOptions;
+  className?: string;
+  theme?: 'light' | 'dark' | 'auto';
+  showToc?: boolean;
+  tocPosition?: 'left' | 'right';
+  debounceMs?: number;
+  onRendered?: (info: { html: string; toc: TocItem[] }) => void;
+  onLinkClick?: (href: string, event: React.MouseEvent) => void;
+  onImageClick?: (src: string, alt: string, event: React.MouseEvent) => void;
+  components?: Partial<Record<string, React.ComponentType<any>>>;
+  streaming?: boolean;
+  onStreamEnd?: () => void;
 }
 ```
 
----
+## ProcessorOptions
 
-## Internationalization (i18n)
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `gfm` | `boolean` | `true` | GitHub Flavored Markdown |
+| `math` | `boolean` | `true` | KaTeX |
+| `mermaid` | `boolean` | `true` | Mermaid code blocks |
+| `frontmatter` | `boolean` | `true` | YAML/TOML front matter |
+| `emoji` | `boolean` | `true` | Emoji shortcodes |
+| `toc` | `boolean` | `false` | `[[toc]]` / `[toc]` replacement |
+| `sanitize` | `boolean` | `true` | HTML sanitization |
+| `sanitizeSchema` | `Schema` | internal | Custom rehype-sanitize schema |
+| `codeTheme` | `string` | `'github-dark'` | Shiki theme |
+| `highlight` | `boolean` | `true` | Shiki highlighting (async pipeline) |
+| `allowHtml` | `boolean` | `true` | Raw HTML path through remark-rehype |
+| `remarkPlugins` | `Plugin[]` | `[]` | Extra remark plugins |
+| `rehypePlugins` | `Plugin[]` | `[]` | Extra rehype plugins |
 
-Built-in locales: `en-US` and `zh-CN`.
+## Exported Utilities
+
+| Export | Description |
+| --- | --- |
+| `createProcessor`, `renderMarkdown`, `renderMarkdownSync`, `parseToAst` | Core unified pipeline |
+| `ProcessorOptions` | Pipeline configuration type |
+| `rehypeHighlightCode` | Shiki highlighting rehype plugin |
+| `renderMermaidDiagram`, `initMermaid` | Client Mermaid helpers |
+| `extractToc`, `remarkToc`, `TocItem` | TOC extraction / remark plugin |
+| `remarkAlert`, `remarkContainer`, `remarkCodeMeta` | Alert, container, code-meta remark plugins |
+| `parseCodeMeta`, `extractCodeBlocks`, `CodeBlockMeta` | Fence meta parsing |
+| `sanitizeUrl`, `processExternalLinks`, `escapeHtml` | Security helpers |
+| `rehypeA11y` | Accessibility rehype plugin |
+| `MarkdownWorkerRenderer`, `RenderCache`, `splitHtmlBlocks` | Worker / cache utilities |
+| `copyToClipboard` | Clipboard helper |
+| `slug`, `resetSlugger` | Heading slug utilities |
+| `setLocale`, `getLocale`, `t`, `getMessages` | i18n API |
+
+## Hooks
+
+| Hook | Description |
+| --- | --- |
+| `useMarkdown(source, options?)` | Returns `{ html, toc, isLoading, error, refresh }` |
+| `useDebouncedValue(value, delay)` | Debounced value |
+| `useScrollSync(editorRef, previewRef)` | Bi-directional scroll sync |
+
+## Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    MarkdownProvider                            │
+│              (theme / locale context)                        │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+        ┌───────────────────┼───────────────────┐
+        ▼                   ▼                   ▼
+ ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐
+ │ MarkdownEditor│  │MarkdownRenderer│ │ MarkdownViewer  │
+ │ ┌──────────┐ │  │ • unified +    │  │ • useMarkdown    │
+ │ │ CodeMirror│ │  │   Shiki/KaTeX  │  │ • no CM dep      │
+ │ │ + Toolbar │ │  │ • TOC sidebar  │  └──────────────────┘
+ │ └──────────┘ │  │ • Mermaid/SVG  │
+ │ ┌──────────┐ │  │ • code actions │
+ │ │ Preview  │◄┼──┤   (copy/…)     │
+ │ │ (Renderer)│ │  └────────────────┘
+ │ └──────────┘ │
+ └──────────────┘
+```
+
+## Sub-Projects
+
+| Path | Description |
+| --- | --- |
+| [`website/`](./website/) | Vite dev playground / demo app for local development |
+| [`src/styles/`](./src/styles/) | Base `markdown-renderer.css` and theme presets (`themes/notion.css`, `themes/typora.css`) |
+
+## Customization
+
+### Extra theme presets
+
+```tsx
+import '@xcan-cloud/markdown/styles';
+// Optional presets:
+import '@xcan-cloud/markdown/themes/notion.css';
+import '@xcan-cloud/markdown/themes/typora.css';
+```
+
+### CSS variables
+
+Override tokens on `.markdown-renderer` (see stylesheet for `--md-*` variables).
+
+### i18n
 
 ```tsx
 <MarkdownProvider defaultLocale="zh-CN">
-  <MarkdownEditor initialValue="# 你好世界" />
+  <MarkdownEditor initialValue="# 你好" />
 </MarkdownProvider>
 ```
-
-Or use programmatically:
 
 ```tsx
 import { setLocale, t } from '@xcan-cloud/markdown';
 
 setLocale('zh-CN');
-console.log(t().toolbar.bold); // "加粗"
 ```
 
----
+### Toolbar
 
-## ProcessorOptions
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `gfm` | `boolean` | `true` | Enable GFM |
-| `math` | `boolean` | `true` | Enable KaTeX math |
-| `mermaid` | `boolean` | `true` | Enable Mermaid diagrams |
-| `frontmatter` | `boolean` | `true` | Parse YAML front matter |
-| `emoji` | `boolean` | `true` | Enable emoji shortcodes |
-| `toc` | `boolean` | `false` | Enable `[[toc]]` directive |
-| `sanitize` | `boolean` | `true` | Sanitize HTML output |
-| `codeTheme` | `string` | `'github-dark'` | Shiki code theme |
-| `allowHtml` | `boolean` | `true` | Allow raw HTML |
-| `remarkPlugins` | `Plugin[]` | `[]` | Custom remark plugins |
-| `rehypePlugins` | `Plugin[]` | `[]` | Custom rehype plugins |
-
----
-
-## Hooks
-
-### `useMarkdown(source, options?)`
-
-Returns `{ html, toc, isLoading, error, refresh }`.
-
-### `useDebouncedValue(value, delay)`
-
-Debounces a value with the specified delay.
-
-### `useScrollSync(editorRef, previewRef)`
-
-Syncs scroll position between editor and preview panels.
-
----
-
-## Project Structure
-
-```
-src/
-├── components/           # React components
-│   ├── MarkdownRenderer  # Full renderer with TOC, Mermaid, copy buttons
-│   ├── MarkdownEditor    # CodeMirror 6 editor with toolbar
-│   ├── MarkdownViewer    # Lightweight SSR-friendly viewer
-│   ├── ThemeSwitcher     # Theme toggle component
-│   ├── LocaleSwitcher    # Locale toggle component
-│   └── ToolbarIcon       # Toolbar icon mapping (lucide-react)
-├── context/              # React Context providers
-│   └── MarkdownProvider
-├── core/                 # Processing pipeline
-│   ├── processor         # unified pipeline
-│   ├── plugins/          # remark/rehype plugins
-│   │   ├── remark-code-meta  # Code block extended attributes
-│   │   └── ...
-│   ├── utils/
-│   │   ├── code-meta     # Code fence meta parsing utilities
-│   │   └── code-download # Code download with language mapping
-│   ├── security          # URL sanitization, XSS prevention
-│   ├── accessibility     # ARIA, a11y rehype plugin
-│   └── performance       # Web Worker, cache, chunking
-├── hooks/                # React hooks
-├── i18n/                 # Internationalization messages
-├── styles/               # CSS stylesheets & themes
-└── utils/                # Clipboard, slug, sanitize utilities
+```tsx
+<MarkdownEditor toolbar={false} />
+<MarkdownEditor toolbar={['bold', 'italic', '|', 'code']} />
 ```
 
----
+### Code fence meta
+
+````markdown
+```python filename=hello.py
+print("hi")
+```
+````
+
+Use `parseCodeMeta` / `extractCodeBlocks` for external tooling.
+
+## Technology Stack
+
+| Category | Technologies |
+| --- | --- |
+| Framework | React 18+, TypeScript |
+| Markdown | unified, remark, rehype, remark-gfm, remark-math, … |
+| Highlighting | Shiki |
+| Diagrams | Mermaid (client), KaTeX |
+| Editor | CodeMirror 6 |
+| Icons | lucide-react |
+| Build | Vite, vite-plugin-dts |
+
+## Browser Support
+
+Modern evergreen browsers (Chrome, Firefox, Safari, Edge — last 2 major versions). Features like `fetch` streams / Workers follow browser capabilities.
 
 ## Development
 
 ```bash
-# Install dependencies
 npm install
-
-# Development mode
-npm run dev
-
-# Build library
-npm run build
-
-# Run tests
+npm run dev      # website demo
+npm run build    # library dist
 npm test
-
-# Type check
-npm run lint
+npm run lint     # tsc --noEmit
 ```
 
----
+## Contributing
+
+1. Fork the repository.
+2. Create a branch: `git checkout -b feat/your-feature`.
+3. Commit with clear messages.
+4. Push and open a Pull Request.
+
+Please ensure `npm run lint` and `npm run build` pass before submitting.
 
 ## License
 
-MIT
+[MIT](./LICENSE) © Markdown package contributors
