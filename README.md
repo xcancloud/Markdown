@@ -10,6 +10,12 @@ Production-grade, extensible Markdown **rendering** and **editing** for React �
 
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [Repository](https://github.com/xcancloud/Markdown) · [npm](https://www.npmjs.com/package/@xcan-cloud/markdown)
 
+<br />
+
+<img src="./editor.png" alt="Markdown Editor — toolbar, split preview with syntax highlighting, math, tables, task lists, alerts, and TOC sidebar" width="920" />
+
+<br />
+
 </div>
 
 ---

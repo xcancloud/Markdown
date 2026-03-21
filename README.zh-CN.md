@@ -10,6 +10,12 @@
 
 [English](./README.md) · **简体中文** · [仓库](https://github.com/xcancloud/Markdown) · [npm](https://www.npmjs.com/package/@xcan-cloud/markdown)
 
+<br />
+
+<img src="./editor.png" alt="Markdown 编辑器 — 工具栏、分栏预览（代码高亮、公式、表格、任务列表、提示框）与右侧目录" width="920" />
+
+<br />
+
 </div>
 
 ---

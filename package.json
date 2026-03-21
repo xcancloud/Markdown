@@ -34,7 +34,10 @@
     "./themes/*": "./dist/styles/themes/*"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "README.zh-CN.md",
+    "editor.png"
   ],
   "sideEffects": [
     "*.css"
