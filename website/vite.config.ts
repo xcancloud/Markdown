@@ -14,6 +14,10 @@ const base =
 export default defineConfig({
   base,
   plugins: [react()],
+  // Worker 内联 processor 会触发多 chunk；iife 不支持代码分割（与根库 vite.config 一致）
+  worker: {
+    format: 'es',
+  },
   server: {
     host: '0.0.0.0',
   },
