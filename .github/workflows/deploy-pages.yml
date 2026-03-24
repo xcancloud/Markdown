@@ -1,0 +1,69 @@
+# 将 website 构建产物部署到 GitHub Pages（项目站点：https://<owner>.github.io/<repo>/）
+# 使用前请在仓库 Settings → Pages → Build and deployment → Source 选择「GitHub Actions」
+
+name: Deploy website to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'website/**'
+      - 'src/**'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            website/package-lock.json
+
+      # website 通过 alias 引用 ../src，需先安装根目录依赖以解析 unified、codemirror 等
+      - name: Install library dependencies
+        run: npm ci
+
+      - name: Install website dependencies
+        working-directory: website
+        run: npm ci
+
+      - name: Build website
+        working-directory: website
+        env:
+          # 与 GitHub Pages 项目路径一致（仓库名含大小写时与 GitHub 展示一致）
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
