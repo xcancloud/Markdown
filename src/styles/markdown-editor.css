@@ -12,7 +12,7 @@
   flex-direction: column;
 }
 
-/* 工具栏 */
+/* 工具栏：禁止被下方内容区撑高时挤压高度（纵向 flex 子项默认可 shrink） */
 .markdown-toolbar {
   display: flex;
   align-items: center;
@@ -22,6 +22,7 @@
   padding: 4px 8px;
   background: var(--md-code-bg, #f6f8fa);
   border-bottom: 1px solid var(--md-border, #d0d7de);
+  flex-shrink: 0;
   overflow-x: auto;
   /* 隐藏滚动条，但保留滚动能力 */
   scrollbar-width: none;
@@ -101,7 +102,7 @@
   display: block;
 }
 
-/* 编辑面板 */
+/* 编辑面板：min-height:0 让超出高度在面板内滚动，避免把工具栏挤出或顶变形 */
 .markdown-editor-panels {
   display: flex;
   flex: 1;
@@ -110,8 +111,9 @@
 
 .markdown-editor-panel {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
   overflow: auto;
-  min-height: 200px;
 }
 
 .markdown-editor-panel .cm-editor {
@@ -126,9 +128,18 @@
 
 .markdown-preview-panel {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
   overflow: auto;
   padding: 16px;
   border-left: 1px solid var(--md-border, #d0d7de);
+  /* 隐藏滚动条，保留滚动（与工具栏横向滚动一致） */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.markdown-preview-panel::-webkit-scrollbar {
+  display: none;
 }
 
 /* 布局模式 */
