@@ -41,6 +41,7 @@ export {
 } from './components/MarkdownRenderer';
 export {
   MarkdownEditor,
+  DEFAULT_MARKDOWN_EDITOR_LAYOUT_MODES,
   type MarkdownEditorProps,
   type ToolbarItem,
   type ToolbarConfig,

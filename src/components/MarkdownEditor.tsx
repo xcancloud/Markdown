@@ -31,6 +31,11 @@ export interface MarkdownEditorProps
   onChange?: (value: string) => void;
   /** 布局模式 */
   layout?: LayoutMode;
+  /**
+   * 工具栏可切换的布局模式（左侧按钮与「布局」快捷键循环均使用）。
+   * 默认含分屏；传入仅 `editor-only` 与 `preview-only` 时仅支持编辑 / 预览整页切换。
+   */
+  layoutModes?: LayoutMode[];
   /** 编辑器最小高度 */
   minHeight?: string;
   /** 编辑器最大高度 */
@@ -118,7 +123,11 @@ const DEFAULT_TOOLBAR: ToolbarItem[] = [
 
 const HEADING_LEVELS: ToolbarItem[] = ['h1', 'h2', 'h3', 'h4', 'h5'];
 
-const LAYOUT_CYCLE: LayoutMode[] = ['preview-only', 'editor-only', 'split'];
+export const DEFAULT_MARKDOWN_EDITOR_LAYOUT_MODES: LayoutMode[] = [
+  'preview-only',
+  'editor-only',
+  'split',
+];
 
 function normalizeToolbarConfig(config: ToolbarConfig | undefined): { show: boolean; items: ToolbarItem[] } {
   if (config === false) return { show: false, items: [] };
@@ -168,6 +177,7 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
     value,
     onChange,
     layout: layoutProp = 'preview-only',
+    layoutModes: layoutModesProp = DEFAULT_MARKDOWN_EDITOR_LAYOUT_MODES,
     minHeight = '400px',
     maxHeight = '800px',
     extensions: userExtensions = [],
@@ -193,6 +203,10 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
     const isTruncatingRef = useRef(false);
 
     const toolbar = normalizeToolbarConfig(toolbarProp);
+    const layoutModes =
+      layoutModesProp.length > 0 ? layoutModesProp : DEFAULT_MARKDOWN_EDITOR_LAYOUT_MODES;
+    const layoutModesRef = useRef(layoutModes);
+    layoutModesRef.current = layoutModes;
 
     // 受控 value 同步
     useEffect(() => {
@@ -377,8 +391,11 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
       }
       if (action === 'layout') {
         setCurrentLayout((prev) => {
-          const idx = LAYOUT_CYCLE.indexOf(prev);
-          return LAYOUT_CYCLE[(idx + 1) % LAYOUT_CYCLE.length];
+          const modes = layoutModesRef.current;
+          if (modes.length === 0) return prev;
+          const idx = modes.indexOf(prev);
+          const i = idx >= 0 ? idx : 0;
+          return modes[(i + 1) % modes.length];
         });
         return;
       }
@@ -413,6 +430,13 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
       setCurrentLayout(layoutProp);
     }, [layoutProp]);
 
+    // 当前布局必须在 layoutModes 内（例如禁用分屏后从 split 回落）
+    useEffect(() => {
+      if (!layoutModes.includes(currentLayout)) {
+        setCurrentLayout(layoutModes[0] ?? 'editor-only');
+      }
+    }, [layoutModes, currentLayout]);
+
     // ========================================
     // 渲染
     // ========================================
@@ -442,7 +466,7 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
           <div className="markdown-toolbar" role="toolbar">
             {/* 左侧：布局切换（三个模式按钮同时展示） */}
             <div className="toolbar-left">
-              {LAYOUT_CYCLE.map((mode) => (
+              {layoutModes.map((mode) => (
                 <button
                   key={mode}
                   className={`toolbar-btn toolbar-layout${currentLayout === mode ? ' active' : ''}`}
