@@ -18,6 +18,12 @@ export interface MarkdownViewerProps {
   theme?: 'light' | 'dark' | 'auto';
   /** 渲染完成回调 */
   onRendered?: (info: { html: string; toc: TocItem[] }) => void;
+  /** 高度 */
+  height?: string;
+  /** 最小高度 */
+  minHeight?: string;
+  /** 最大高度 */
+  maxHeight?: string;
 }
 
 export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
@@ -26,6 +32,9 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   className = '',
   theme: themeProp,
   onRendered,
+  height,
+  minHeight,
+  maxHeight,
 }) => {
   const { html, isLoading, error } = useMarkdown(source, options);
   const { resolvedTheme, theme: ctxTheme } = useTheme();
@@ -53,6 +62,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
     <div
       className={`markdown-renderer markdown-theme-${effectiveTheme} ${className}`}
       data-loading={isLoading || undefined}
+      style={height !== undefined || minHeight !== undefined || maxHeight !== undefined ? { height, minHeight, maxHeight } : undefined}
     >
       <div
         className="markdown-body"

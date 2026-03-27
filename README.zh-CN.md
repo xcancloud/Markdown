@@ -20,24 +20,24 @@
 
 ---
 
-## Table of Contents
+## 目录
 
-- [Features](#features)
-- [Quick Start](#quick-start)
-- [API Reference](#api-reference)
+- [特性](#特性)
+- [快速开始](#快速开始)
+- [API 参考](#api-参考)
 - [ProcessorOptions](#processoroptions)
-- [Exported Utilities](#exported-utilities)
+- [导出工具](#导出工具)
 - [Hooks](#hooks)
-- [Component Architecture](#component-architecture)
-- [Sub-Projects](#sub-projects)
-- [Customization](#customization)
-- [Technology Stack](#technology-stack)
-- [Browser Support](#browser-support)
-- [Development](#development)
-- [Contributing](#contributing)
-- [License](#license)
+- [组件架构](#组件架构)
+- [子项目](#子项目)
+- [自定义](#自定义)
+- [技术栈](#技术栈)
+- [浏览器支持](#浏览器支持)
+- [开发](#开发)
+- [贡献](#贡献)
+- [许可证](#许可证)
 
-## Features
+## 特性
 
 - **CommonMark & GFM** — 表格、任务列表、删除线、脚注、自动链接等
 - **语法高亮** — 通过 [Shiki](https://shiki.style/) 支持 30+ 语言（接近 VS Code 主题质量）
@@ -57,9 +57,9 @@
 - **国际化** — 内置 `en-US`、`zh-CN`
 - **双构建** — ESM + CJS、TypeScript 声明、可按需 tree-shaking 的入口
 
-## Quick Start
+## 快速开始
 
-### Installation
+### 安装
 
 ```bash
 npm install @xcan-cloud/markdown
@@ -77,7 +77,10 @@ npm install react react-dom
 import '@xcan-cloud/markdown/styles';
 ```
 
-### Basic Rendering
+> 这一行已同时包含渲染器与编辑器所需的全部基础样式。
+> 主题预设（Notion、Typora 等）需单独引入，详见[自定义](#自定义)。
+
+### 基础渲染
 
 ```tsx
 import { MarkdownRenderer } from '@xcan-cloud/markdown';
@@ -88,7 +91,7 @@ function App() {
 }
 ```
 
-### Editor (split view)
+### 编辑器（分栏视图）
 
 ```tsx
 import { MarkdownEditor } from '@xcan-cloud/markdown';
@@ -105,7 +108,7 @@ function App() {
 }
 ```
 
-### Theme & Locale Provider
+### 主题与语言 Provider
 
 ```tsx
 import {
@@ -129,7 +132,7 @@ function App() {
 }
 ```
 
-### SSR-Friendly Viewer (no CodeMirror)
+### SSR 友好的 Viewer（无 CodeMirror 依赖）
 
 ```tsx
 import { MarkdownViewer } from '@xcan-cloud/markdown';
@@ -140,7 +143,7 @@ function Page({ markdown }: { markdown: string }) {
 }
 ```
 
-## API Reference
+## API 参考
 
 ### `<MarkdownRenderer />`
 
@@ -161,6 +164,9 @@ function Page({ markdown }: { markdown: string }) {
 | `components` | `Partial<Record<string, ComponentType<any>>>` | — | 自定义 HTML 标签映射 |
 | `streaming` | `boolean` | `false` | 是否处于流式接收 |
 | `onStreamEnd` | `() => void` | — | `streaming` 从 `true` 变为 `false` 时触发 |
+| `height` | `string` | — | 渲染容器固定高度 |
+| `minHeight` | `string` | — | 渲染容器最小高度 |
+| `maxHeight` | `string` | — | 渲染容器最大高度 |
 
 ### `<MarkdownEditor />`
 
@@ -195,6 +201,9 @@ function Page({ markdown }: { markdown: string }) {
 | `className` | `string` | `''` | 根节点 class |
 | `theme` | `'light' \| 'dark' \| 'auto'` | 来自上下文 | 主题 |
 | `onRendered` | `(info: { html: string; toc: TocItem[] }) => void` | — | 注意：Viewer 中 `toc` 恒为 `[]` |
+| `height` | `string` | — | 查看容器固定高度 |
+| `minHeight` | `string` | — | 查看容器最小高度 |
+| `maxHeight` | `string` | — | 查看容器最大高度 |
 
 ### `<MarkdownProvider />`
 
@@ -208,7 +217,7 @@ function Page({ markdown }: { markdown: string }) {
 
 可选 UI；也可通过 `useTheme()`、`useLocale()` 读写主题与语言。
 
-### TypeScript (core props)
+### TypeScript（核心 Props）
 
 ```tsx
 interface MarkdownRendererProps {
@@ -225,6 +234,9 @@ interface MarkdownRendererProps {
   components?: Partial<Record<string, React.ComponentType<any>>>;
   streaming?: boolean;
   onStreamEnd?: () => void;
+  height?: string;
+  minHeight?: string;
+  maxHeight?: string;
 }
 ```
 
@@ -246,7 +258,7 @@ interface MarkdownRendererProps {
 | `remarkPlugins` | `Plugin[]` | `[]` | 额外 remark 插件 |
 | `rehypePlugins` | `Plugin[]` | `[]` | 额外 rehype 插件 |
 
-## Exported Utilities
+## 导出工具
 
 | 导出 | 说明 |
 | --- | --- |
@@ -272,7 +284,7 @@ interface MarkdownRendererProps {
 | `useDebouncedValue(value, delay)` | 防抖值 |
 | `useScrollSync(editorRef, previewRef)` | 编辑区与预览区双向滚动同步 |
 
-## Component Architecture
+## 组件架构
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -295,16 +307,16 @@ interface MarkdownRendererProps {
  └──────────────┘
 ```
 
-## Sub-Projects
+## 子项目
 
 | 路径 | 说明 |
 | --- | --- |
 | [`website/`](./website/) | Vite 本地开发与演示 |
 | [`src/styles/`](./src/styles/) | 基础 `markdown-renderer.css` 与主题预设（`themes/notion.css`、`themes/typora.css`） |
 
-## Customization
+## 自定义
 
-### Extra theme presets
+### 额外主题预设
 
 ```tsx
 import '@xcan-cloud/markdown/styles';
@@ -313,7 +325,7 @@ import '@xcan-cloud/markdown/themes/notion.css';
 import '@xcan-cloud/markdown/themes/typora.css';
 ```
 
-### CSS variables
+### CSS 变量
 
 在 `.markdown-renderer` 上覆盖 `--md-*` 等变量（详见样式表）。
 
@@ -331,14 +343,28 @@ import { setLocale, t } from '@xcan-cloud/markdown';
 setLocale('zh-CN');
 ```
 
-### Toolbar
+### 工具栏
 
 ```tsx
 <MarkdownEditor toolbar={false} />
 <MarkdownEditor toolbar={['bold', 'italic', '|', 'code']} />
 ```
 
-### Code fence meta
+### 高度设置
+
+```tsx
+// 固定高度
+<MarkdownRenderer source={md} height="600px" />
+<MarkdownViewer source={md} height="400px" />
+
+// 最小 / 最大高度
+<MarkdownRenderer source={md} minHeight="200px" maxHeight="80vh" />
+
+// 编辑器 CodeMirror 区域高度
+<MarkdownEditor minHeight="300px" maxHeight="700px" />
+```
+
+### 代码块扩展属性
 
 ````markdown
 ```python filename=hello.py
@@ -348,7 +374,7 @@ print("hi")
 
 外部工具可配合 `parseCodeMeta`、`extractCodeBlocks` 使用。
 
-## Technology Stack
+## 技术栈
 
 | 类别 | 技术 |
 | --- | --- |
@@ -360,11 +386,11 @@ print("hi")
 | 图标 | lucide-react |
 | 构建 | Vite、vite-plugin-dts |
 
-## Browser Support
+## 浏览器支持
 
 支持主流现代浏览器（Chrome、Firefox、Safari、Edge 等最近两个大版本）。`fetch` 流、Web Worker 等能力随浏览器本身支持情况而定。
 
-## Development
+## 开发
 
 ```bash
 npm install
@@ -374,7 +400,7 @@ npm test
 npm run lint     # tsc --noEmit
 ```
 
-## Contributing
+## 贡献
 
 1. Fork 本仓库。
 2. 新建分支：`git checkout -b feat/your-feature`。
@@ -383,6 +409,6 @@ npm run lint     # tsc --noEmit
 
 提交前请确保 `npm run lint` 与 `npm run build` 通过。
 
-## License
+## 许可证
 
 [MIT](./LICENSE) © Markdown package contributors

@@ -1,6 +1,6 @@
 {
   "name": "@xcan-cloud/markdown",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Production-grade, extensible, high-performance Markdown rendering and editing component",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
@@ -12,7 +12,7 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "cd website && vite",
     "build": "tsc && vite build && cp -r src/styles dist/",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -30,7 +30,7 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
-    "./styles": "./dist/styles/markdown-renderer.css",
+    "./styles": "./dist/styles/index.css",
     "./themes/*": "./dist/styles/themes/*"
   },
   "files": [

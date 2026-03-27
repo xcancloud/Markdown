@@ -77,6 +77,9 @@ Import styles once in your app:
 import '@xcan-cloud/markdown/styles';
 ```
 
+> This single import includes both the renderer and editor styles.
+> Optional theme presets are imported separately (see [Customization](#customization)).
+
 ### Basic Rendering
 
 ```tsx
@@ -161,6 +164,9 @@ Full-featured renderer: TOC, Mermaid/SVG post-processing, code actions, streamin
 | `components` | `Partial<Record<string, ComponentType<any>>>` | — | Custom HTML tag mapping |
 | `streaming` | `boolean` | `false` | Live stream mode |
 | `onStreamEnd` | `() => void` | — | Fired when `streaming` goes `true` → `false` |
+| `height` | `string` | — | Fixed height of the renderer container |
+| `minHeight` | `string` | — | Minimum height of the renderer container |
+| `maxHeight` | `string` | — | Maximum height of the renderer container |
 
 ### `<MarkdownEditor />`
 
@@ -195,6 +201,9 @@ Lightweight viewer using `useMarkdown` (no CodeMirror).
 | `className` | `string` | `''` | Root class |
 | `theme` | `'light' \| 'dark' \| 'auto'` | from context | Theme |
 | `onRendered` | `(info: { html: string; toc: TocItem[] }) => void` | — | Note: `toc` is `[]` in viewer |
+| `height` | `string` | — | Fixed height of the viewer container |
+| `minHeight` | `string` | — | Minimum height of the viewer container |
+| `maxHeight` | `string` | — | Maximum height of the viewer container |
 
 ### `<MarkdownProvider />`
 
@@ -225,6 +234,9 @@ interface MarkdownRendererProps {
   components?: Partial<Record<string, React.ComponentType<any>>>;
   streaming?: boolean;
   onStreamEnd?: () => void;
+  height?: string;
+  minHeight?: string;
+  maxHeight?: string;
 }
 ```
 
@@ -336,6 +348,20 @@ setLocale('zh-CN');
 ```tsx
 <MarkdownEditor toolbar={false} />
 <MarkdownEditor toolbar={['bold', 'italic', '|', 'code']} />
+```
+
+### Height
+
+```tsx
+// Fixed height
+<MarkdownRenderer source={md} height="600px" />
+<MarkdownViewer source={md} height="400px" />
+
+// Min / max height
+<MarkdownRenderer source={md} minHeight="200px" maxHeight="80vh" />
+
+// Editor CodeMirror pane height
+<MarkdownEditor minHeight="300px" maxHeight="700px" />
 ```
 
 ### Code fence meta

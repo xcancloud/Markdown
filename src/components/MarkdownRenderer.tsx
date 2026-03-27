@@ -53,6 +53,12 @@ export interface MarkdownRendererProps {
   streaming?: boolean;
   /** 流式结束回调 */
   onStreamEnd?: () => void;
+  /** 高度 */
+  height?: string;
+  /** 最小高度 */
+  minHeight?: string;
+  /** 最大高度 */
+  maxHeight?: string;
 }
 
 type ComponentMap = {
@@ -106,6 +112,9 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
     onImageClick,
     streaming = false,
     onStreamEnd,
+    height,
+    minHeight,
+    maxHeight,
   }) => {
     const { resolvedTheme, theme: ctxTheme } = useTheme();
     const { messages } = useLocale();
@@ -364,6 +373,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
       <div
         className={`markdown-renderer markdown-theme-${effectiveTheme} toc-${tocPosition} ${className}`}
         data-loading={isLoading || undefined}
+        style={height !== undefined || minHeight !== undefined || maxHeight !== undefined ? { height, minHeight, maxHeight } : undefined}
       >
         {showToc && toc.length > 0 && (
           <aside className="markdown-toc-sidebar">

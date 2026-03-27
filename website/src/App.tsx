@@ -67,6 +67,7 @@ const SITE_TEXT = {
         hook: 'useMarkdown Hook',
         streaming: 'SSE Streaming',
         codeMeta: 'Code Block Meta',
+        viewer: 'Viewer & Height',
       },
     },
     cta: {
@@ -137,6 +138,7 @@ const SITE_TEXT = {
         hook: 'useMarkdown Hook',
         streaming: 'SSE 流式渲染',
         codeMeta: '代码块扩展属性',
+        viewer: 'Viewer 与高度',
       },
     },
     cta: {
@@ -437,6 +439,55 @@ blocks.forEach(block => {
   console.log(block.attributes);  // { filename: 'hello.py', dir: 'src/hello.py' }
   console.log(block.code);        // 'print("Hello, World!")'
 });`,
+  viewer: `import { MarkdownViewer, MarkdownRenderer } from '@xcan-cloud/markdown';
+import '@xcan-cloud/markdown/styles';
+
+// MarkdownViewer — SSR-friendly, zero CodeMirror dependency.
+// Best for display-only pages: docs, blog posts, changelogs.
+function DocumentPage({ markdown }: { markdown: string }) {
+  return (
+    <MarkdownViewer
+      source={markdown}
+      theme="auto"
+      height="600px"
+      onRendered={({ html }) => console.log('HTML length:', html.length)}
+    />
+  );
+}
+
+// Min / max height on MarkdownViewer
+function BoundedPage({ markdown }: { markdown: string }) {
+  return (
+    <MarkdownViewer
+      source={markdown}
+      minHeight="200px"
+      maxHeight="80vh"
+    />
+  );
+}
+
+// Height constraints on MarkdownRenderer (full-featured)
+function InlinePreview({ source }: { source: string }) {
+  return (
+    <MarkdownRenderer
+      source={source}
+      height="400px"
+      showToc={false}
+    />
+  );
+}
+
+// Editor CodeMirror pane height (independent of preview height)
+function TallEditor() {
+  return (
+    <MarkdownEditor
+      initialValue="# Hello"
+      layout="split"
+      minHeight="300px"
+      maxHeight="800px"
+    />
+  );
+}`,
 };
 
 // ============================================================
