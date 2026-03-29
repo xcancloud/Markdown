@@ -25,7 +25,7 @@ export default defineConfig({
         'react/jsx-runtime',
         'mermaid',
         'katex',
-        'shiki',
+        /^shiki(\/|$)/,
       ],
       output: {
         globals: {

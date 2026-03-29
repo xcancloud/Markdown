@@ -68,6 +68,11 @@
 /* ============================
    Typography — Headings
    ============================ */
+.markdown-theme-angus .markdown-body > :first-child,
+.markdown-theme-angus-dark .markdown-body > :first-child {
+  margin-top: 0;
+}
+
 .markdown-theme-angus .markdown-body h1,
 .markdown-theme-angus-dark .markdown-body h1 {
   font-size: 2em;
@@ -75,7 +80,7 @@
   letter-spacing: -0.025em;
   border-bottom: 2px solid var(--md-border);
   padding-bottom: 0.4em;
-  margin-top: 2em;
+  margin-top: 1.5em;
   margin-bottom: 1em;
 }
 

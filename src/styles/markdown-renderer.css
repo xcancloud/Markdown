@@ -93,6 +93,10 @@
   overflow-wrap: break-word;
 }
 
+.markdown-body > :first-child {
+  margin-top: 0;
+}
+
 /* Headings */
 .markdown-body h1,
 .markdown-body h2,

@@ -1,54 +1,90 @@
 import { visit } from 'unist-util-visit';
 import {
-  createHighlighter,
-  type Highlighter,
-  type BundledLanguage,
-} from 'shiki';
+  createHighlighterCore,
+  type HighlighterCore,
+} from 'shiki/core';
+import { createOnigurumaEngine } from 'shiki/engine/oniguruma';
 import type { Root, Element } from 'hast';
 import type { Plugin } from 'unified';
 import { looksLikeSvgMarkup } from '../utils/svg-sanitize';
 
+// 静态导入主题
+import themGithubDark from '@shikijs/themes/github-dark';
+import themGithubLight from '@shikijs/themes/github-light';
+
+// 静态导入核心语言
+import langJavascript from '@shikijs/langs/javascript';
+import langTypescript from '@shikijs/langs/typescript';
+import langHtml from '@shikijs/langs/html';
+import langCss from '@shikijs/langs/css';
+import langJson from '@shikijs/langs/json';
+import langBash from '@shikijs/langs/bash';
+import langPython from '@shikijs/langs/python';
+
+// 按需导入的额外语言注册表
+import langJava from '@shikijs/langs/java';
+import langC from '@shikijs/langs/c';
+import langCpp from '@shikijs/langs/cpp';
+import langGo from '@shikijs/langs/go';
+import langRust from '@shikijs/langs/rust';
+import langRuby from '@shikijs/langs/ruby';
+import langKotlin from '@shikijs/langs/kotlin';
+import langScss from '@shikijs/langs/scss';
+import langYaml from '@shikijs/langs/yaml';
+import langXml from '@shikijs/langs/xml';
+import langSql from '@shikijs/langs/sql';
+import langShell from '@shikijs/langs/shellscript';
+import langDockerfile from '@shikijs/langs/dockerfile';
+import langGraphql from '@shikijs/langs/graphql';
+
 interface HighlightOptions {
   theme?: string;
-  langs?: BundledLanguage[];
   /** 是否显示行号 */
   lineNumbers?: boolean;
   /** 高亮特定行 */
   highlightLines?: boolean;
 }
 
-// 核心常用语言（首次加载），其余按需加载
-const CORE_LANGS: BundledLanguage[] = [
-  'javascript',
-  'typescript',
-  'html',
-  'css',
-  'json',
-  'bash',
-  'python',
-];
+const THEME_MAP: Record<string, any> = {
+  'github-dark': themGithubDark,
+  'github-light': themGithubLight,
+};
 
-// 明确不支持的语言，不会按需加载
-const DISABLED_LANGS = new Set([
-  'regex',
-  'latex',
-  'powershell',
-  'markdown',
-  'toml',
-  'csharp',
-  'swift',
-  'php',
-]);
+const CORE_LANGS = [langJavascript, langTypescript, langHtml, langCss, langJson, langBash, langPython];
+const CORE_LANG_IDS = ['javascript', 'typescript', 'html', 'css', 'json', 'bash', 'python'];
 
-let highlighterPromise: Promise<Highlighter> | null = null;
-// 已加载的语言集合
-const loadedLangs = new Set<string>(CORE_LANGS);
+// 额外支持的语言（静态导入，按需加载到 highlighter）
+const EXTRA_LANG_MAP: Record<string, any> = {
+  java: langJava,
+  c: langC,
+  cpp: langCpp,
+  go: langGo,
+  rust: langRust,
+  ruby: langRuby,
+  kotlin: langKotlin,
+  scss: langScss,
+  yaml: langYaml,
+  yml: langYaml,
+  xml: langXml,
+  sql: langSql,
+  shell: langShell,
+  sh: langBash,
+  zsh: langBash,
+  dockerfile: langDockerfile,
+  docker: langDockerfile,
+  graphql: langGraphql,
+};
 
-function getHighlighter(theme: string): Promise<Highlighter> {
+let highlighterPromise: Promise<HighlighterCore> | null = null;
+const loadedLangs = new Set<string>(CORE_LANG_IDS);
+
+function getHighlighter(theme: string): Promise<HighlighterCore> {
   if (!highlighterPromise) {
-    highlighterPromise = createHighlighter({
-      themes: [theme, 'github-light'],
+    const themeDark = THEME_MAP[theme] || themGithubDark;
+    highlighterPromise = createHighlighterCore({
+      themes: [themeDark, themGithubLight],
       langs: CORE_LANGS,
+      engine: createOnigurumaEngine(import('shiki/wasm')),
     });
   }
   return highlighterPromise;
@@ -57,11 +93,12 @@ function getHighlighter(theme: string): Promise<Highlighter> {
 /**
  * 按需加载语言
  */
-async function ensureLanguage(highlighter: Highlighter, lang: string): Promise<boolean> {
+async function ensureLanguage(highlighter: HighlighterCore, lang: string): Promise<boolean> {
   if (loadedLangs.has(lang)) return true;
-  if (DISABLED_LANGS.has(lang)) return false;
+  const grammar = EXTRA_LANG_MAP[lang];
+  if (!grammar) return false;
   try {
-    await highlighter.loadLanguage(lang as BundledLanguage);
+    await highlighter.loadLanguage(grammar);
     loadedLangs.add(lang);
     return true;
   } catch {
@@ -142,7 +179,7 @@ const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
         const effectiveLang = loaded ? lang : 'text';
 
         const html = highlighter.codeToHtml(code, {
-          lang: effectiveLang as BundledLanguage,
+          lang: effectiveLang,
           themes: { dark: theme, light: 'github-light' },
         });
 
