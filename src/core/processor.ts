@@ -15,7 +15,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeHighlightCode from './plugins/rehype-highlight-code';
 import { remarkAlert } from './plugins/remark-alert';
 import { remarkContainer } from './plugins/remark-container';
-import { remarkToc } from './plugins/toc-generator';
+import { remarkToc, remarkExtractToc } from './plugins/toc-generator';
 import { remarkCodeMeta } from './plugins/remark-code-meta';
 import { rehypeA11y } from './accessibility';
 
@@ -93,6 +93,9 @@ export function createProcessor(options: ProcessorOptions = {}) {
 
   // 代码块扩展属性 (```python filename=hello.py 等)
   processor = processor.use(remarkCodeMeta);
+
+  // TOC 提取（始终启用，结果存入 vfile.data.toc）
+  processor = processor.use(remarkExtractToc);
 
   // TOC 插件 ([[toc]] / [toc] 替换)
   if (options.toc) processor = processor.use(remarkToc);

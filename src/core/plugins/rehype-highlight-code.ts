@@ -17,46 +17,56 @@ interface HighlightOptions {
   highlightLines?: boolean;
 }
 
+// 核心常用语言（首次加载），其余按需加载
+const CORE_LANGS: BundledLanguage[] = [
+  'javascript',
+  'typescript',
+  'html',
+  'css',
+  'json',
+  'bash',
+  'python',
+];
+
+// 明确不支持的语言，不会按需加载
+const DISABLED_LANGS = new Set([
+  'regex',
+  'latex',
+  'powershell',
+  'markdown',
+  'toml',
+  'csharp',
+  'swift',
+  'php',
+]);
+
 let highlighterPromise: Promise<Highlighter> | null = null;
+// 已加载的语言集合
+const loadedLangs = new Set<string>(CORE_LANGS);
 
 function getHighlighter(theme: string): Promise<Highlighter> {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
       themes: [theme, 'github-light'],
-      langs: [
-        'javascript',
-        'typescript',
-        'python',
-        'java',
-        'c',
-        'cpp',
-        'csharp',
-        'go',
-        'rust',
-        'ruby',
-        'php',
-        'swift',
-        'kotlin',
-        'html',
-        'css',
-        'scss',
-        'json',
-        'yaml',
-        'toml',
-        'xml',
-        'sql',
-        'bash',
-        'shell',
-        'powershell',
-        'dockerfile',
-        'markdown',
-        'latex',
-        'graphql',
-        'regex',
-      ],
+      langs: CORE_LANGS,
     });
   }
   return highlighterPromise;
+}
+
+/**
+ * 按需加载语言
+ */
+async function ensureLanguage(highlighter: Highlighter, lang: string): Promise<boolean> {
+  if (loadedLangs.has(lang)) return true;
+  if (DISABLED_LANGS.has(lang)) return false;
+  try {
+    await highlighter.loadLanguage(lang as BundledLanguage);
+    loadedLangs.add(lang);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
@@ -127,8 +137,12 @@ const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
       }
 
       try {
+        // 按需加载该语言
+        const loaded = await ensureLanguage(highlighter, lang);
+        const effectiveLang = loaded ? lang : 'text';
+
         const html = highlighter.codeToHtml(code, {
-          lang: lang as BundledLanguage,
+          lang: effectiveLang as BundledLanguage,
           themes: { dark: theme, light: 'github-light' },
         });
 

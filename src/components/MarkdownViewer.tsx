@@ -36,7 +36,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   minHeight,
   maxHeight,
 }) => {
-  const { html, isLoading, error } = useMarkdown(source, options);
+  const { html, toc, isLoading, error } = useMarkdown(source, options);
   const { resolvedTheme, theme: ctxTheme } = useTheme();
   const { messages } = useLocale();
   const theme = themeProp ?? (ctxTheme || 'auto');
@@ -44,9 +44,9 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
 
   React.useEffect(() => {
     if (html && onRendered) {
-      onRendered({ html, toc: [] });
+      onRendered({ html, toc });
     }
-  }, [html, onRendered]);
+  }, [html, toc, onRendered]);
 
   if (error) {
     return (

@@ -53,7 +53,7 @@
 - **安全** — rehype-sanitize 配置、URL 处理、面向 XSS 的默认策略
 - **无障碍** — rehype a11y 辅助、面向 ARIA 的输出
 - **流式渲染** — `streaming` 属性适配 SSE / 分块内容（跳过防抖、光标提示）
-- **主题** — 浅色 / 深色 / 跟随系统 + CSS 变量；预设：GitHub（默认）、Notion、Typora
+- **主题** — 浅色 / 深色 / 跟随系统 + CSS 变量；预设：GitHub（默认）、Angus
 - **国际化** — 内置 `en-US`、`zh-CN`
 - **双构建** — ESM + CJS、TypeScript 声明、可按需 tree-shaking 的入口
 
@@ -78,7 +78,7 @@ import '@xcan-cloud/markdown/styles';
 ```
 
 > 这一行已同时包含渲染器与编辑器所需的全部基础样式。
-> 主题预设（Notion、Typora 等）需单独引入，详见[自定义](#自定义)。
+> 主题预设（GitHub、Angus）需单独引入，详见[自定义](#自定义)。
 
 ### 基础渲染
 
@@ -200,7 +200,7 @@ function Page({ markdown }: { markdown: string }) {
 | `options` | `ProcessorOptions` | — | 流水线选项 |
 | `className` | `string` | `''` | 根节点 class |
 | `theme` | `'light' \| 'dark' \| 'auto'` | 来自上下文 | 主题 |
-| `onRendered` | `(info: { html: string; toc: TocItem[] }) => void` | — | 注意：Viewer 中 `toc` 恒为 `[]` |
+| `onRendered` | `(info: { html: string; toc: TocItem[] }) => void` | — | 渲染完成回调 |
 | `height` | `string` | — | 查看容器固定高度 |
 | `minHeight` | `string` | — | 查看容器最小高度 |
 | `maxHeight` | `string` | — | 查看容器最大高度 |
@@ -312,7 +312,7 @@ interface MarkdownRendererProps {
 | 路径 | 说明 |
 | --- | --- |
 | [`website/`](./website/) | Vite 本地开发与演示 |
-| [`src/styles/`](./src/styles/) | 基础 `markdown-renderer.css` 与主题预设（`themes/notion.css`、`themes/typora.css`） |
+| [`src/styles/`](./src/styles/) | 基础 `markdown-renderer.css` 与主题预设（`themes/github.css`、`themes/angus.css`） |
 
 ## 自定义
 
@@ -321,8 +321,8 @@ interface MarkdownRendererProps {
 ```tsx
 import '@xcan-cloud/markdown/styles';
 // 可选预设：
-import '@xcan-cloud/markdown/themes/notion.css';
-import '@xcan-cloud/markdown/themes/typora.css';
+import '@xcan-cloud/markdown/themes/github.css';
+import '@xcan-cloud/markdown/themes/angus.css';
 ```
 
 ### CSS 变量

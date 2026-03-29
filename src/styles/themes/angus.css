@@ -1,0 +1,777 @@
+/* ============================================================
+   Angus 主题 — 默认主题
+   现代、清晰、高对比度的阅读体验，灵感来自顶级技术文档排版。
+   支持 Light / Dark 双模式，CSS 变量可外部覆盖。
+   ============================================================ */
+
+/* ============================
+   Light Mode
+   ============================ */
+.markdown-theme-angus {
+  /* 品牌色 */
+  --md-accent: #3b82f6;
+  --md-accent-hover: #2563eb;
+  --md-accent-subtle: rgba(59, 130, 246, 0.08);
+
+  /* 基础 */
+  --md-bg: #ffffff;
+  --md-body-bg: #ffffff;
+  --md-text: #1e293b;
+  --md-text-secondary: #64748b;
+  --md-border: #e2e8f0;
+  --md-link: #3b82f6;
+  --md-code-bg: #f8fafc;
+  --md-blockquote-border: #cbd5e1;
+  --md-blockquote-text: #64748b;
+  --md-table-border: #e2e8f0;
+  --md-table-row-alt: #f8fafc;
+  --md-mark-bg: #fef9c3;
+
+  /* 排版 */
+  --md-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  --md-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular,
+    'SF Mono', Menlo, Consolas, monospace;
+  --md-font-size-base: 15px;
+  --md-line-height: 1.75;
+}
+
+/* ============================
+   Dark Mode
+   ============================ */
+.markdown-theme-angus-dark {
+  --md-accent: #60a5fa;
+  --md-accent-hover: #93bbfd;
+  --md-accent-subtle: rgba(96, 165, 250, 0.1);
+
+  --md-bg: #0f172a;
+  --md-body-bg: transparent;
+  --md-text: #e2e8f0;
+  --md-text-secondary: #94a3b8;
+  --md-border: #1e293b;
+  --md-link: #60a5fa;
+  --md-code-bg: #1e293b;
+  --md-blockquote-border: #334155;
+  --md-blockquote-text: #94a3b8;
+  --md-table-border: #1e293b;
+  --md-table-row-alt: #1e293b;
+  --md-mark-bg: rgba(250, 204, 21, 0.15);
+
+  --md-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  --md-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular,
+    'SF Mono', Menlo, Consolas, monospace;
+  --md-font-size-base: 15px;
+  --md-line-height: 1.75;
+}
+
+/* ============================
+   Typography — Headings
+   ============================ */
+.markdown-theme-angus .markdown-body h1,
+.markdown-theme-angus-dark .markdown-body h1 {
+  font-size: 2em;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  border-bottom: 2px solid var(--md-border);
+  padding-bottom: 0.4em;
+  margin-top: 2em;
+  margin-bottom: 1em;
+}
+
+.markdown-theme-angus .markdown-body h2,
+.markdown-theme-angus-dark .markdown-body h2 {
+  font-size: 1.5em;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  border-bottom: 1px solid var(--md-border);
+  padding-bottom: 0.3em;
+  margin-top: 1.75em;
+  margin-bottom: 0.75em;
+}
+
+.markdown-theme-angus .markdown-body h3,
+.markdown-theme-angus-dark .markdown-body h3 {
+  font-size: 1.25em;
+  font-weight: 620;
+  letter-spacing: -0.015em;
+  margin-top: 1.5em;
+}
+
+.markdown-theme-angus .markdown-body h4,
+.markdown-theme-angus-dark .markdown-body h4 {
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.markdown-theme-angus .markdown-body h5,
+.markdown-theme-angus-dark .markdown-body h5 {
+  font-size: 0.95em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--md-text-secondary);
+}
+
+.markdown-theme-angus .markdown-body h6,
+.markdown-theme-angus-dark .markdown-body h6 {
+  font-size: 0.875em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--md-text-secondary);
+}
+
+/* Heading anchor link styling */
+.markdown-theme-angus .markdown-body :is(h1, h2, h3, h4, h5, h6) a,
+.markdown-theme-angus-dark .markdown-body :is(h1, h2, h3, h4, h5, h6) a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.markdown-theme-angus .markdown-body :is(h1, h2, h3, h4, h5, h6) a:hover,
+.markdown-theme-angus-dark .markdown-body :is(h1, h2, h3, h4, h5, h6) a:hover {
+  color: var(--md-accent);
+}
+
+/* ============================
+   Typography — Body
+   ============================ */
+.markdown-theme-angus .markdown-body p,
+.markdown-theme-angus-dark .markdown-body p {
+  margin-bottom: 1.25em;
+}
+
+.markdown-theme-angus .markdown-body strong,
+.markdown-theme-angus-dark .markdown-body strong {
+  font-weight: 650;
+  color: var(--md-text);
+}
+
+/* ============================
+   Links
+   ============================ */
+.markdown-theme-angus .markdown-body a,
+.markdown-theme-angus-dark .markdown-body a {
+  color: var(--md-link);
+  text-decoration: none;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.markdown-theme-angus .markdown-body a:hover,
+.markdown-theme-angus-dark .markdown-body a:hover {
+  color: var(--md-accent-hover);
+  text-decoration: underline;
+  text-decoration-color: var(--md-accent-hover);
+}
+
+/* ============================
+   Inline Code
+   ============================ */
+.markdown-theme-angus .markdown-body code:not(pre code),
+.markdown-theme-angus-dark .markdown-body code:not(pre code) {
+  padding: 0.15em 0.4em;
+  font-size: 0.875em;
+  background-color: var(--md-code-bg);
+  border: 1px solid var(--md-border);
+  border-radius: 5px;
+  font-family: var(--md-font-mono);
+  font-weight: 450;
+  color: var(--md-text);
+  word-break: break-word;
+}
+
+/* ============================
+   Code Block
+   ============================ */
+.markdown-theme-angus .markdown-body .code-block,
+.markdown-theme-angus-dark .markdown-body .code-block {
+  position: relative;
+  margin: 1.5em 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--md-border);
+  background-color: var(--md-code-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Language badge */
+.markdown-theme-angus .markdown-body .code-block[data-language]::before,
+.markdown-theme-angus-dark .markdown-body .code-block[data-language]::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 3px 12px;
+  font-size: 11px;
+  font-family: var(--md-font-mono);
+  font-weight: 500;
+  color: var(--md-text-secondary);
+  background: var(--md-border);
+  border-bottom-right-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.markdown-theme-angus .markdown-body .code-block pre,
+.markdown-theme-angus-dark .markdown-body .code-block pre {
+  margin: 0;
+  padding: 2.25em 1em 1em;
+  overflow-x: auto;
+  font-size: 0.8125em;
+  line-height: 1.7;
+  background-color: var(--md-code-bg) !important;
+}
+
+.markdown-theme-angus .markdown-body pre,
+.markdown-theme-angus-dark .markdown-body pre {
+  padding: 1em;
+  overflow-x: auto;
+  font-size: 0.8125em;
+  line-height: 1.6;
+  background-color: var(--md-code-bg);
+  border: 1px solid var(--md-border);
+  border-radius: 8px;
+  font-family: var(--md-font-mono);
+}
+
+/* ============================
+   Blockquote
+   ============================ */
+.markdown-theme-angus .markdown-body blockquote,
+.markdown-theme-angus-dark .markdown-body blockquote {
+  margin: 1.5em 0;
+  padding: 0.5em 1em;
+  color: var(--md-blockquote-text);
+  border-left: 3px solid var(--md-accent);
+  background: var(--md-accent-subtle);
+  border-radius: 0 6px 6px 0;
+}
+
+.markdown-theme-angus .markdown-body blockquote p:last-child,
+.markdown-theme-angus-dark .markdown-body blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================
+   Lists
+   ============================ */
+.markdown-theme-angus .markdown-body ul,
+.markdown-theme-angus .markdown-body ol,
+.markdown-theme-angus-dark .markdown-body ul,
+.markdown-theme-angus-dark .markdown-body ol {
+  padding-left: 1.75em;
+  margin-bottom: 1.25em;
+}
+
+.markdown-theme-angus .markdown-body li,
+.markdown-theme-angus-dark .markdown-body li {
+  margin-top: 0.375em;
+}
+
+.markdown-theme-angus .markdown-body li::marker,
+.markdown-theme-angus-dark .markdown-body li::marker {
+  color: var(--md-text-secondary);
+}
+
+/* Task lists */
+.markdown-theme-angus .markdown-body .task-list-item input[type='checkbox'],
+.markdown-theme-angus-dark .markdown-body .task-list-item input[type='checkbox'] {
+  accent-color: var(--md-accent);
+  width: 15px;
+  height: 15px;
+  vertical-align: -2px;
+}
+
+/* ============================
+   Tables
+   ============================ */
+.markdown-theme-angus .markdown-body table,
+.markdown-theme-angus-dark .markdown-body table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  width: max-content;
+  max-width: 100%;
+  margin: 1.5em 0;
+  display: block;
+  overflow-x: auto;
+  border: 1px solid var(--md-table-border);
+  border-radius: 8px;
+}
+
+.markdown-theme-angus .markdown-body th,
+.markdown-theme-angus-dark .markdown-body th {
+  padding: 10px 16px;
+  border: 1px solid var(--md-table-border);
+  font-weight: 600;
+  font-size: 0.875em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--md-text-secondary);
+  background: var(--md-code-bg);
+  text-align: left;
+}
+
+.markdown-theme-angus .markdown-body td,
+.markdown-theme-angus-dark .markdown-body td {
+  padding: 10px 16px;
+  border: 1px solid var(--md-table-border);
+}
+
+.markdown-theme-angus .markdown-body tr:nth-child(2n),
+.markdown-theme-angus-dark .markdown-body tr:nth-child(2n) {
+  background-color: var(--md-table-row-alt);
+}
+
+.markdown-theme-angus .markdown-body tr:hover td,
+.markdown-theme-angus-dark .markdown-body tr:hover td {
+  background-color: var(--md-accent-subtle);
+}
+
+/* ============================
+   Images
+   ============================ */
+.markdown-theme-angus .markdown-body img,
+.markdown-theme-angus-dark .markdown-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease;
+}
+
+.markdown-theme-angus .markdown-body img:hover,
+.markdown-theme-angus-dark .markdown-body img:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================
+   Horizontal Rule
+   ============================ */
+.markdown-theme-angus .markdown-body hr,
+.markdown-theme-angus-dark .markdown-body hr {
+  border: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--md-border), transparent);
+  margin: 2.5em 0;
+}
+
+/* ============================
+   Mark / Highlight
+   ============================ */
+.markdown-theme-angus .markdown-body mark,
+.markdown-theme-angus-dark .markdown-body mark {
+  background-color: var(--md-mark-bg);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+/* ============================
+   GFM Alerts — Enhanced
+   ============================ */
+.markdown-theme-angus .markdown-body .markdown-alert,
+.markdown-theme-angus-dark .markdown-body .markdown-alert {
+  padding: 1em 1.25em;
+  margin: 1.5em 0;
+  border-radius: 8px;
+  border-left: 4px solid;
+  font-size: 0.9375em;
+}
+
+.markdown-theme-angus .markdown-body .markdown-alert p:last-child,
+.markdown-theme-angus-dark .markdown-body .markdown-alert p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-theme-angus .markdown-body .markdown-alert-note,
+.markdown-theme-angus-dark .markdown-body .markdown-alert-note {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.markdown-theme-angus .markdown-body .markdown-alert-tip,
+.markdown-theme-angus-dark .markdown-body .markdown-alert-tip {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.markdown-theme-angus .markdown-body .markdown-alert-warning,
+.markdown-theme-angus-dark .markdown-body .markdown-alert-warning {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.markdown-theme-angus .markdown-body .markdown-alert-caution,
+.markdown-theme-angus-dark .markdown-body .markdown-alert-caution {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.markdown-theme-angus .markdown-body .markdown-alert-important,
+.markdown-theme-angus-dark .markdown-body .markdown-alert-important {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.06);
+}
+
+/* ============================
+   Custom Containers
+   ============================ */
+.markdown-theme-angus .markdown-body .markdown-container,
+.markdown-theme-angus-dark .markdown-body .markdown-container {
+  padding: 1em 1.25em;
+  margin: 1.5em 0;
+  border-radius: 8px;
+  border-left: 4px solid var(--md-border);
+  background: var(--md-code-bg);
+}
+
+.markdown-theme-angus .markdown-body .markdown-container-warning,
+.markdown-theme-angus-dark .markdown-body .markdown-container-warning {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.markdown-theme-angus .markdown-body .markdown-container-danger,
+.markdown-theme-angus-dark .markdown-body .markdown-container-danger {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.markdown-theme-angus .markdown-body .markdown-container-tip,
+.markdown-theme-angus-dark .markdown-body .markdown-container-tip {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.markdown-theme-angus .markdown-body .markdown-container-note,
+.markdown-theme-angus-dark .markdown-body .markdown-container-note {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.06);
+}
+
+/* ============================
+   Mermaid Diagrams
+   ============================ */
+.markdown-theme-angus .markdown-body .mermaid-container,
+.markdown-theme-angus-dark .markdown-body .mermaid-container {
+  display: flex;
+  justify-content: center;
+  margin: 1.5em 0;
+  padding: 1em;
+  background: var(--md-code-bg);
+  border-radius: 8px;
+  border: 1px solid var(--md-border);
+  overflow-x: auto;
+}
+
+/* ============================
+   KaTeX Math
+   ============================ */
+.markdown-theme-angus .markdown-body .katex-display,
+.markdown-theme-angus-dark .markdown-body .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.75em 0;
+}
+
+/* ============================
+   Footnotes
+   ============================ */
+.markdown-theme-angus .markdown-body .footnotes,
+.markdown-theme-angus-dark .markdown-body .footnotes {
+  font-size: 0.875em;
+  border-top: 2px solid var(--md-border);
+  margin-top: 2em;
+  padding-top: 1em;
+  color: var(--md-text-secondary);
+}
+
+/* ============================
+   TOC Sidebar — Enhanced
+   ============================ */
+.markdown-theme-angus .markdown-toc-sidebar,
+.markdown-theme-angus-dark .markdown-toc-sidebar {
+  flex: 0 0 220px;
+  padding: 8px 16px;
+  font-size: 0.8125em;
+}
+
+.markdown-theme-angus .markdown-toc-sidebar .toc-nav,
+.markdown-theme-angus-dark .markdown-toc-sidebar .toc-nav {
+  border-left: 2px solid var(--md-border);
+}
+
+.markdown-theme-angus .markdown-toc-sidebar .toc-item a,
+.markdown-theme-angus-dark .markdown-toc-sidebar .toc-item a {
+  display: block;
+  padding: 3px 0;
+  color: var(--md-text-secondary);
+  text-decoration: none;
+  transition: color 0.15s ease, padding-left 0.15s ease;
+  border-radius: 2px;
+}
+
+.markdown-theme-angus .markdown-toc-sidebar .toc-item a:hover,
+.markdown-theme-angus-dark .markdown-toc-sidebar .toc-item a:hover {
+  color: var(--md-accent);
+}
+
+.markdown-theme-angus .markdown-toc-sidebar .toc-active > a,
+.markdown-theme-angus-dark .markdown-toc-sidebar .toc-active > a {
+  color: var(--md-accent);
+  font-weight: 600;
+}
+
+/* ============================
+   Code Block Action Buttons
+   ============================ */
+.markdown-theme-angus .markdown-body .code-block .code-block-actions button,
+.markdown-theme-angus-dark .markdown-body .code-block .code-block-actions button {
+  padding: 4px 10px;
+  font-size: 11px;
+  border: 1px solid var(--md-border);
+  border-radius: 6px;
+  background: var(--md-bg);
+  color: var(--md-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(4px);
+}
+
+.markdown-theme-angus .markdown-body .code-block .code-block-actions button:hover,
+.markdown-theme-angus-dark .markdown-body .code-block .code-block-actions button:hover {
+  color: var(--md-accent);
+  border-color: var(--md-accent);
+  background: var(--md-accent-subtle);
+}
+
+/* ============================
+   SVG Preview
+   ============================ */
+.markdown-theme-angus .markdown-body .svg-preview-container,
+.markdown-theme-angus-dark .markdown-body .svg-preview-container {
+  border: 1px solid var(--md-border);
+  border-radius: 8px;
+  overflow: auto;
+}
+
+/* ============================
+   Scrollbar — Refined
+   ============================ */
+.markdown-theme-angus .markdown-body pre::-webkit-scrollbar,
+.markdown-theme-angus .markdown-body .code-block::-webkit-scrollbar,
+.markdown-theme-angus-dark .markdown-body pre::-webkit-scrollbar,
+.markdown-theme-angus-dark .markdown-body .code-block::-webkit-scrollbar {
+  height: 5px;
+}
+
+.markdown-theme-angus .markdown-body pre::-webkit-scrollbar-thumb,
+.markdown-theme-angus .markdown-body .code-block::-webkit-scrollbar-thumb,
+.markdown-theme-angus-dark .markdown-body pre::-webkit-scrollbar-thumb,
+.markdown-theme-angus-dark .markdown-body .code-block::-webkit-scrollbar-thumb {
+  background: var(--md-border);
+  border-radius: 3px;
+}
+
+.markdown-theme-angus .markdown-body pre::-webkit-scrollbar-thumb:hover,
+.markdown-theme-angus .markdown-body .code-block::-webkit-scrollbar-thumb:hover,
+.markdown-theme-angus-dark .markdown-body pre::-webkit-scrollbar-thumb:hover,
+.markdown-theme-angus-dark .markdown-body .code-block::-webkit-scrollbar-thumb:hover {
+  background: var(--md-text-secondary);
+}
+
+/* ============================
+   Shiki Dark Mode Overrides
+   ============================ */
+.markdown-theme-angus-dark .markdown-body .code-block .shiki,
+.markdown-theme-angus-dark .markdown-body .code-block .shiki pre {
+  color: var(--shiki-dark) !important;
+  background-color: var(--md-code-bg) !important;
+}
+
+.markdown-theme-angus-dark .markdown-body .code-block .shiki span {
+  color: var(--shiki-dark) !important;
+}
+
+.markdown-theme-angus-dark .markdown-body code:not(pre code) {
+  background-color: var(--md-code-bg, #1e293b);
+  color: var(--md-text, #e2e8f0);
+}
+
+.markdown-theme-angus-dark .markdown-body code:not(pre code) span {
+  color: inherit;
+}
+
+/* ============================
+   Editor Dark Mode Overrides
+   ============================ */
+.markdown-editor.markdown-theme-angus-dark {
+  border-color: var(--md-border);
+  background: var(--md-bg);
+}
+
+.markdown-editor.markdown-theme-angus-dark .markdown-toolbar {
+  background: var(--md-bg);
+  border-bottom-color: var(--md-border);
+}
+
+.markdown-editor.markdown-theme-angus-dark .toolbar-btn {
+  color: var(--md-text-secondary);
+}
+
+.markdown-editor.markdown-theme-angus-dark .toolbar-btn:hover {
+  background: var(--md-accent-subtle);
+  border-color: var(--md-border);
+  color: var(--md-text);
+}
+
+.markdown-editor.markdown-theme-angus-dark .toolbar-separator {
+  background: var(--md-border);
+}
+
+.markdown-editor.markdown-theme-angus-dark .toolbar-dropdown {
+  background: var(--md-bg);
+  border-color: var(--md-border);
+}
+
+.markdown-editor.markdown-theme-angus-dark .toolbar-dropdown-item {
+  color: var(--md-text);
+}
+
+.markdown-editor.markdown-theme-angus-dark .toolbar-dropdown-item:hover {
+  background: var(--md-accent-subtle);
+}
+
+.markdown-editor.markdown-theme-angus-dark .markdown-preview-panel {
+  border-left-color: var(--md-border);
+}
+
+.markdown-editor.markdown-theme-angus-dark .cm-editor {
+  background-color: var(--md-bg);
+}
+
+.markdown-editor.markdown-theme-angus-dark .cm-editor .cm-content {
+  color: var(--md-text);
+  caret-color: var(--md-text);
+}
+
+.markdown-editor.markdown-theme-angus-dark .cm-editor .cm-cursor {
+  border-left-color: var(--md-text);
+}
+
+.markdown-editor.markdown-theme-angus-dark .cm-editor .cm-activeLine {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.markdown-editor.markdown-theme-angus-dark .cm-editor .cm-selectionBackground,
+.markdown-editor.markdown-theme-angus-dark .cm-editor .cm-content ::selection {
+  background-color: rgba(96, 165, 250, 0.18);
+}
+
+.markdown-editor.markdown-theme-angus-dark .cm-editor .cm-gutters {
+  background-color: var(--md-bg);
+  border-right-color: var(--md-border);
+  color: var(--md-text-secondary);
+}
+
+.markdown-editor.markdown-theme-angus-dark .cm-editor .cm-activeLineGutter {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.markdown-editor.markdown-theme-angus-dark .markdown-editor-counter {
+  background: var(--md-code-bg, #1e293b);
+  color: var(--md-text-secondary);
+  border-top-color: var(--md-border);
+}
+
+/* Theme / Locale Switcher dark */
+.markdown-theme-angus-dark .angus-theme-switcher,
+.markdown-theme-angus-dark .angus-locale-switcher {
+  border-color: var(--md-border);
+  background: var(--md-code-bg);
+}
+
+.markdown-theme-angus-dark .theme-switcher-btn,
+.markdown-theme-angus-dark .locale-switcher-btn {
+  color: var(--md-text-secondary);
+}
+
+.markdown-theme-angus-dark .theme-switcher-btn:hover,
+.markdown-theme-angus-dark .locale-switcher-btn:hover {
+  background: var(--md-bg);
+  color: var(--md-text);
+}
+
+.markdown-theme-angus-dark .theme-switcher-btn.active,
+.markdown-theme-angus-dark .locale-switcher-btn.active {
+  background: var(--md-bg);
+  color: var(--md-accent);
+}
+
+/* ============================
+   Print Styles
+   ============================ */
+@media print {
+  .markdown-theme-angus,
+  .markdown-theme-angus-dark {
+    --md-bg: #ffffff;
+    --md-text: #000000;
+    --md-border: #cccccc;
+    --md-code-bg: #f5f5f5;
+    --md-link: #0066cc;
+  }
+
+  .markdown-theme-angus .markdown-body img,
+  .markdown-theme-angus-dark .markdown-body img {
+    box-shadow: none;
+  }
+
+  .markdown-theme-angus .markdown-body .code-block,
+  .markdown-theme-angus-dark .markdown-body .code-block {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .markdown-theme-angus .markdown-body .code-block .code-block-actions,
+  .markdown-theme-angus-dark .markdown-body .code-block .code-block-actions {
+    display: none;
+  }
+
+  .markdown-toc-sidebar {
+    display: none;
+  }
+}
+
+/* ============================
+   Responsive — Mobile
+   ============================ */
+@media (max-width: 768px) {
+  .markdown-theme-angus .markdown-body,
+  .markdown-theme-angus-dark .markdown-body {
+    font-size: 14px;
+    --md-line-height: 1.7;
+  }
+
+  .markdown-theme-angus .markdown-body h1,
+  .markdown-theme-angus-dark .markdown-body h1 {
+    font-size: 1.6em;
+  }
+
+  .markdown-theme-angus .markdown-body h2,
+  .markdown-theme-angus-dark .markdown-body h2 {
+    font-size: 1.3em;
+  }
+
+  .markdown-theme-angus .markdown-body .code-block pre,
+  .markdown-theme-angus-dark .markdown-body .code-block pre {
+    font-size: 12px;
+  }
+
+  .markdown-theme-angus .markdown-body table,
+  .markdown-theme-angus-dark .markdown-body table {
+    font-size: 13px;
+  }
+}

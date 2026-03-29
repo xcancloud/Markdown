@@ -56,6 +56,16 @@ function buildTocTree(
 }
 
 /**
+ * remark 插件：在处理管道中提取 TOC 并存入 vfile.data.toc，
+ * 避免渲染后二次解析 AST。
+ */
+export const remarkExtractToc: Plugin<[], Root> = () => {
+  return (tree: Root, file: any) => {
+    file.data.toc = extractToc(tree);
+  };
+};
+
+/**
  * remark 插件：将 [[toc]] 替换为目录
  */
 export const remarkToc: Plugin<[], Root> = () => {

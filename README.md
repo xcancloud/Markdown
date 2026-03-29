@@ -53,7 +53,7 @@ Production-grade, extensible Markdown **rendering** and **editing** for React �
 - **Security** — rehype-sanitize schema, URL handling, XSS-oriented defaults
 - **Accessibility** — rehype a11y helpers, ARIA-oriented output
 - **Streaming** — `streaming` prop for live SSE/chunked content (debounce bypass, cursor affordance)
-- **Themes** — Light / Dark / Auto + CSS variables; presets: GitHub (default), Notion, Typora
+- **Themes** — Light / Dark / Auto + CSS variables; presets: GitHub (default), Angus
 - **i18n** — `en-US` and `zh-CN` built-in
 - **Dual Build** — ESM + CJS, TypeScript declarations, tree-shakeable entry
 
@@ -312,7 +312,7 @@ interface MarkdownRendererProps {
 | Path | Description |
 | --- | --- |
 | [`website/`](./website/) | Vite dev playground / demo app for local development |
-| [`src/styles/`](./src/styles/) | Base `markdown-renderer.css` and theme presets (`themes/notion.css`, `themes/typora.css`) |
+| [`src/styles/`](./src/styles/) | Base `markdown-renderer.css` and theme presets (`themes/github.css`, `themes/angus.css`) |
 
 ## Customization
 
@@ -321,8 +321,8 @@ interface MarkdownRendererProps {
 ```tsx
 import '@xcan-cloud/markdown/styles';
 // Optional presets:
-import '@xcan-cloud/markdown/themes/notion.css';
-import '@xcan-cloud/markdown/themes/typora.css';
+import '@xcan-cloud/markdown/themes/github.css';
+import '@xcan-cloud/markdown/themes/angus.css';
 ```
 
 ### CSS variables

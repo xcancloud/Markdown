@@ -8,14 +8,20 @@ import React, {
 } from 'react';
 import { createProcessor, type ProcessorOptions } from '../core/processor';
 import { renderMermaidDiagram } from '../core/plugins/mermaid-renderer';
-import { extractToc, type TocItem } from '../core/plugins/toc-generator';
-import { parseToAst } from '../core/processor';
+import type { TocItem } from '../core/plugins/toc-generator';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { copyToClipboard } from '../utils/clipboard';
 import { triggerCodeDownload } from '../core/utils/code-download';
 import { sanitizeSvgMarkup } from '../core/utils/svg-sanitize';
+import { RenderCache, splitHtmlBlocks } from '../core/performance';
 import { useTheme } from '../context/MarkdownProvider';
 import { useLocale } from '../context/MarkdownProvider';
+
+// 模块级单例缓存
+const rendererCache = new RenderCache(200, 120_000);
+
+// 大文档阈值（字节），超过后启用分块渲染
+const LARGE_DOC_THRESHOLD = 50_000;
 
 // Lucide icon SVG strings for DOM-injected code block action buttons
 const ICON_COPY = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
@@ -156,14 +162,18 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
         setError(null);
 
         try {
-          // 1. 渲染 HTML
+          // 尝试命中缓存（仅 html；TOC 仍需从管道获取）
+          const cached = rendererCache.get(debouncedSource);
+
+          // 1. 渲染 HTML（TOC 由 remarkExtractToc 插件写入 vfile.data.toc）
           const result = await processor.process(debouncedSource);
           if (cancelled) return;
-          const renderedHtml = String(result);
+          const renderedHtml = cached ?? String(result);
+          const tocData = (result.data?.toc as TocItem[]) ?? [];
 
-          // 2. 提取 TOC
-          const ast = parseToAst(debouncedSource, options);
-          const tocData = extractToc(ast);
+          if (!cached) {
+            rendererCache.set(debouncedSource, renderedHtml);
+          }
 
           setHtml(renderedHtml);
           setToc(tocData);
@@ -357,6 +367,14 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
     );
 
     // ========================================
+    // 大文档分块渲染
+    // ========================================
+    const htmlBlocks = useMemo(() => {
+      if (!html || html.length < LARGE_DOC_THRESHOLD) return null;
+      return splitHtmlBlocks(html);
+    }, [html]);
+
+    // ========================================
     // 渲染
     // ========================================
     if (error) {
@@ -381,18 +399,62 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
           </aside>
         )}
 
-        <div
-          ref={containerRef}
-          className={`markdown-body${streaming ? ' streaming' : ''}`}
-          onClick={handleClick}
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
+        {htmlBlocks ? (
+          <div
+            ref={containerRef}
+            className={`markdown-body${streaming ? ' streaming' : ''}`}
+            onClick={handleClick}
+          >
+            {htmlBlocks.map((block, i) => (
+              <LazyBlock key={i} html={block} />
+            ))}
+          </div>
+        ) : (
+          <div
+            ref={containerRef}
+            className={`markdown-body${streaming ? ' streaming' : ''}`}
+            onClick={handleClick}
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+        )}
       </div>
     );
   },
 );
 
 MarkdownRenderer.displayName = 'MarkdownRenderer';
+
+// ============================================================
+// 大文档懒加载块组件
+// ============================================================
+const LazyBlock: React.FC<{ html: string }> = memo(({ html }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  if (!visible) {
+    return <div ref={ref} style={{ minHeight: 24 }} />;
+  }
+
+  return <div ref={ref} dangerouslySetInnerHTML={{ __html: html }} />;
+});
+
+LazyBlock.displayName = 'LazyBlock';
 
 // ============================================================
 // TOC 侧边栏子组件

@@ -21,6 +21,7 @@ export {
 export {
   extractToc,
   remarkToc,
+  remarkExtractToc,
   type TocItem,
 } from './core/plugins/toc-generator';
 export { remarkAlert } from './core/plugins/remark-alert';
@@ -81,7 +82,7 @@ export {
 } from './i18n';
 
 // --- Hooks ---
-export { useMarkdown, type UseMarkdownResult } from './hooks/useMarkdown';
+export { useMarkdown, type UseMarkdownResult, type UseMarkdownOptions } from './hooks/useMarkdown';
 export { useDebouncedValue } from './hooks/useDebouncedValue';
 export { useScrollSync } from './hooks/useScrollSync';
 
