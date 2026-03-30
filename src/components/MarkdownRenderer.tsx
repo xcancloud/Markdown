@@ -14,7 +14,11 @@ import { copyToClipboard } from '../utils/clipboard';
 import { triggerCodeDownload } from '../core/utils/code-download';
 import { sanitizeSvgMarkup } from '../core/utils/svg-sanitize';
 import { RenderCache, splitHtmlBlocks } from '../core/performance';
-import { useTheme } from '../context/MarkdownProvider';
+import {
+  useTheme,
+  type ThemeMode,
+  resolveThemeClass,
+} from '../context/MarkdownProvider';
 import { useLocale } from '../context/MarkdownProvider';
 
 // 模块级单例缓存
@@ -40,7 +44,7 @@ export interface MarkdownRendererProps {
   /** 自定义 class */
   className?: string;
   /** 主题 */
-  theme?: 'light' | 'dark' | 'auto';
+  theme?: ThemeMode;
   /** 是否显示目录侧边栏 */
   showToc?: boolean;
   /** 目录侧边栏位置 */
@@ -122,10 +126,11 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
     minHeight,
     maxHeight,
   }) => {
-    const { resolvedTheme, theme: ctxTheme } = useTheme();
+    const { resolvedMode, theme: ctxTheme, variant } = useTheme();
     const { messages } = useLocale();
     const theme = themeProp ?? (ctxTheme || 'auto');
-    const effectiveTheme = theme === 'auto' ? resolvedTheme : theme;
+    const effectiveMode = theme === 'auto' ? resolvedMode : theme;
+    const themeClass = resolveThemeClass(variant, effectiveMode);
 
     const [html, setHtml] = useState<string>('');
     const [toc, setToc] = useState<TocItem[]>([]);
@@ -389,7 +394,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
 
     return (
       <div
-        className={`markdown-renderer markdown-theme-${effectiveTheme} toc-${tocPosition} ${className}`}
+        className={`markdown-renderer ${themeClass} toc-${tocPosition} ${className}`}
         data-loading={isLoading || undefined}
         style={height !== undefined || minHeight !== undefined || maxHeight !== undefined ? { height, minHeight, maxHeight } : undefined}
       >

@@ -26,6 +26,9 @@
 
   /* 圆角 */
   --md-radius: 6px;
+
+  background-color: var(--md-bg, #ffffff);
+  color: var(--md-text, #1f2328);
 }
 
 /* Light 主题 */
@@ -521,6 +524,7 @@
 /* Dark theme inline code: 强制深色背景 + 浅色文字，避免变量未正确应用时出现浅白底浅白字 */
 .markdown-theme-dark .markdown-body code:not(pre code),
 .markdown-theme-github-dark .markdown-body code:not(pre code),
+.markdown-theme-angus-dark .markdown-body code:not(pre code),
 .markdown-theme-auto .markdown-body code:not(pre code) {
   background-color: var(--md-code-bg, #161b22);
   color: var(--md-text, #e6edf3);
@@ -528,18 +532,21 @@
 
 .markdown-theme-dark .markdown-body code:not(pre code) span,
 .markdown-theme-github-dark .markdown-body code:not(pre code) span,
+.markdown-theme-angus-dark .markdown-body code:not(pre code) span,
 .markdown-theme-auto .markdown-body code:not(pre code) span {
   color: inherit;
 }
 
 /* Dark theme code block overrides */
 .markdown-theme-dark .markdown-body .code-block,
-.markdown-theme-github-dark .markdown-body .code-block {
+.markdown-theme-github-dark .markdown-body .code-block,
+.markdown-theme-angus-dark .markdown-body .code-block {
   border-color: rgba(48, 54, 61, 0.6);
 }
 
 .markdown-theme-dark .markdown-body pre,
-.markdown-theme-github-dark .markdown-body pre {
+.markdown-theme-github-dark .markdown-body pre,
+.markdown-theme-angus-dark .markdown-body pre {
   border-color: rgba(48, 54, 61, 0.6);
 }
 
@@ -555,13 +562,16 @@
 .markdown-theme-dark .markdown-body .code-block .shiki,
 .markdown-theme-dark .markdown-body .code-block .shiki pre,
 .markdown-theme-github-dark .markdown-body .code-block .shiki,
-.markdown-theme-github-dark .markdown-body .code-block .shiki pre {
+.markdown-theme-github-dark .markdown-body .code-block .shiki pre,
+.markdown-theme-angus-dark .markdown-body .code-block .shiki,
+.markdown-theme-angus-dark .markdown-body .code-block .shiki pre {
   color: var(--shiki-dark) !important;
   background-color: var(--md-code-bg) !important;
 }
 
 .markdown-theme-dark .markdown-body .code-block .shiki span,
-.markdown-theme-github-dark .markdown-body .code-block .shiki span {
+.markdown-theme-github-dark .markdown-body .code-block .shiki span,
+.markdown-theme-angus-dark .markdown-body .code-block .shiki span {
   color: var(--shiki-dark) !important;
 }
 

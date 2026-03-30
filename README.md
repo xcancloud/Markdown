@@ -53,7 +53,7 @@ Production-grade, extensible Markdown **rendering** and **editing** for React �
 - **Security** — rehype-sanitize schema, URL handling, XSS-oriented defaults
 - **Accessibility** — rehype a11y helpers, ARIA-oriented output
 - **Streaming** — `streaming` prop for live SSE/chunked content (debounce bypass, cursor affordance)
-- **Themes** — Light / Dark / Auto + CSS variables; presets: GitHub (default), Angus
+- **Themes** — Light / Dark / Auto mode + `ThemeVariant` skin system (Default / Angus / GitHub); CSS variables throughout
 - **i18n** — `en-US` and `zh-CN` built-in
 - **Dual Build** — ESM + CJS, TypeScript declarations, tree-shakeable entry
 
@@ -121,9 +121,10 @@ import '@xcan-cloud/markdown/styles';
 
 function App() {
   return (
-    <MarkdownProvider defaultTheme="auto" defaultLocale="en-US">
+    // defaultVariant="angus" — angus.css is already bundled inside @xcan-cloud/markdown/styles
+    <MarkdownProvider defaultTheme="auto" defaultVariant="angus" defaultLocale="en-US">
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <ThemeSwitcher />
+        <ThemeSwitcher />   {/* switches light / dark / auto */}
         <LocaleSwitcher />
       </div>
       <MarkdownEditor initialValue="# Hello" layout="split" />
@@ -210,7 +211,8 @@ Lightweight viewer using `useMarkdown` (no CodeMirror).
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `children` | `ReactNode` | — | App subtree |
-| `defaultTheme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | Initial theme |
+| `defaultTheme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | Light/dark mode |
+| `defaultVariant` | `'default' \| 'angus' \| 'github'` | `'angus'` | Visual skin |
 | `defaultLocale` | `'en-US' \| 'zh-CN'` | `'en-US'` | Initial locale |
 
 ### `<ThemeSwitcher />` / `<LocaleSwitcher />`
@@ -275,6 +277,7 @@ interface MarkdownRendererProps {
 | `copyToClipboard` | Clipboard helper |
 | `slug`, `resetSlugger` | Heading slug utilities |
 | `setLocale`, `getLocale`, `t`, `getMessages` | i18n API |
+| `ThemeVariant`, `resolveThemeClass` | Skin type and CSS-class resolver |
 
 ## Hooks
 
@@ -316,13 +319,91 @@ interface MarkdownRendererProps {
 
 ## Customization
 
-### Extra theme presets
+### Themes
+
+The theme system has two orthogonal dimensions:
+
+- **`defaultTheme`** — brightness mode: `'light'`, `'dark'`, `'auto'` (follows `prefers-color-scheme`)
+- **`defaultVariant`** — visual skin: `'default'`, `'angus'`, `'github'`
+
+The combination maps to a single CSS class on the root container:
+
+| variant \ mode | `light` | `dark` |
+| --- | --- | --- |
+| `default` | `markdown-theme-light` | `markdown-theme-dark` |
+| `angus` | `markdown-theme-angus` | `markdown-theme-angus-dark` |
+| `github` | `markdown-theme-github` | `markdown-theme-github-dark` |
+
+#### Default skin (light / dark toggle)
 
 ```tsx
 import '@xcan-cloud/markdown/styles';
-// Optional presets:
-import '@xcan-cloud/markdown/themes/github.css';
-import '@xcan-cloud/markdown/themes/angus.css';
+import { MarkdownProvider, MarkdownRenderer } from '@xcan-cloud/markdown';
+
+function App() {
+  return (
+    <MarkdownProvider defaultTheme="auto">
+      <MarkdownRenderer source="# Hello" />
+    </MarkdownProvider>
+  );
+}
+```
+
+#### Angus skin
+
+The Angus skin CSS is **bundled inside** `@xcan-cloud/markdown/styles` — no extra import needed.
+
+```tsx
+import '@xcan-cloud/markdown/styles';
+import { MarkdownProvider, MarkdownEditor, ThemeSwitcher } from '@xcan-cloud/markdown';
+
+function App() {
+  return (
+    // defaultVariant="angus": light mode → markdown-theme-angus
+    //                          dark mode  → markdown-theme-angus-dark
+    <MarkdownProvider defaultTheme="auto" defaultVariant="angus">
+      <ThemeSwitcher />
+      <MarkdownEditor initialValue="# Hello" layout="split" />
+    </MarkdownProvider>
+  );
+}
+```
+
+#### GitHub skin
+
+The GitHub skin requires an additional CSS import:
+
+```tsx
+import '@xcan-cloud/markdown/styles';
+import '@xcan-cloud/markdown/themes/github.css';   // ← extra import required
+import { MarkdownProvider, MarkdownRenderer } from '@xcan-cloud/markdown';
+
+function App() {
+  return (
+    // defaultVariant="github": light mode → markdown-theme-github
+    //                           dark mode  → markdown-theme-github-dark
+    <MarkdownProvider defaultTheme="light" defaultVariant="github">
+      <MarkdownRenderer source="# Hello" />
+    </MarkdownProvider>
+  );
+}
+```
+
+#### Switching variant at runtime
+
+```tsx
+import { useTheme } from '@xcan-cloud/markdown';
+
+function VariantSwitcher() {
+  const { variant, setVariant } = useTheme();
+  return (
+    <select value={variant} onChange={(e) => setVariant(e.target.value as any)}>
+      <option value="default">Default</option>
+      <option value="angus">Angus</option>
+      <option value="github">GitHub</option>
+    </select>
+  );
+}
 ```
 
 ### CSS variables

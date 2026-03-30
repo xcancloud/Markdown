@@ -53,7 +53,7 @@
 - **安全** — rehype-sanitize 配置、URL 处理、面向 XSS 的默认策略
 - **无障碍** — rehype a11y 辅助、面向 ARIA 的输出
 - **流式渲染** — `streaming` 属性适配 SSE / 分块内容（跳过防抖、光标提示）
-- **主题** — 浅色 / 深色 / 跟随系统 + CSS 变量；预设：GitHub（默认）、Angus
+- **主题** — 浅色 / 深色 / 跟随系统亮暗模式 + `ThemeVariant` 皮肤体系（Default / Angus / GitHub）；全面采用 CSS 变量
 - **国际化** — 内置 `en-US`、`zh-CN`
 - **双构建** — ESM + CJS、TypeScript 声明、可按需 tree-shaking 的入口
 
@@ -121,9 +121,10 @@ import '@xcan-cloud/markdown/styles';
 
 function App() {
   return (
-    <MarkdownProvider defaultTheme="auto" defaultLocale="zh-CN">
+    // defaultVariant="angus" — Angus 皮肤 CSS 已内置在 @xcan-cloud/markdown/styles 中，无需额外引入
+    <MarkdownProvider defaultTheme="auto" defaultVariant="angus" defaultLocale="zh-CN">
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <ThemeSwitcher />
+        <ThemeSwitcher />   {/* 切换 light / dark / auto */}
         <LocaleSwitcher />
       </div>
       <MarkdownEditor initialValue="# 你好" layout="split" />
@@ -210,7 +211,8 @@ function Page({ markdown }: { markdown: string }) {
 | Prop | Type | Default | 说明 |
 | --- | --- | --- | --- |
 | `children` | `ReactNode` | — | 子树 |
-| `defaultTheme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | 初始主题 |
+| `defaultTheme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | 亮暗模式 |
+| `defaultVariant` | `'default' \| 'angus' \| 'github'` | `'angus'` | 视觉皮肤 |
 | `defaultLocale` | `'en-US' \| 'zh-CN'` | `'en-US'` | 初始语言 |
 
 ### `<ThemeSwitcher />` / `<LocaleSwitcher />`
@@ -275,6 +277,7 @@ interface MarkdownRendererProps {
 | `copyToClipboard` | 剪贴板 |
 | `slug`, `resetSlugger` | 标题 slug |
 | `setLocale`, `getLocale`, `t`, `getMessages` | 国际化 API |
+| `ThemeVariant`, `resolveThemeClass` | 皮肤类型与 CSS 类名解析函数 |
 
 ## Hooks
 
@@ -316,13 +319,91 @@ interface MarkdownRendererProps {
 
 ## 自定义
 
-### 额外主题预设
+### 主题
+
+主题系统由两个正交维度组成：
+
+- **`defaultTheme`** — 亮暗模式：`'light'`、`'dark'`、`'auto'`（跟随 `prefers-color-scheme`）
+- **`defaultVariant`** — 视觉皮肤：`'default'`、`'angus'`、`'github'`
+
+两者组合后映射为根容器上的一个 CSS 类：
+
+| 皮肤 \ 模式 | `light` | `dark` |
+| --- | --- | --- |
+| `default` | `markdown-theme-light` | `markdown-theme-dark` |
+| `angus` | `markdown-theme-angus` | `markdown-theme-angus-dark` |
+| `github` | `markdown-theme-github` | `markdown-theme-github-dark` |
+
+#### 默认皮肤（仅切换亮暗）
 
 ```tsx
 import '@xcan-cloud/markdown/styles';
-// 可选预设：
-import '@xcan-cloud/markdown/themes/github.css';
-import '@xcan-cloud/markdown/themes/angus.css';
+import { MarkdownProvider, MarkdownRenderer } from '@xcan-cloud/markdown';
+
+function App() {
+  return (
+    <MarkdownProvider defaultTheme="auto">
+      <MarkdownRenderer source="# Hello" />
+    </MarkdownProvider>
+  );
+}
+```
+
+#### Angus 皮肤
+
+Angus 皮肤的 CSS **已内置在** `@xcan-cloud/markdown/styles` 中，无需额外引入。
+
+```tsx
+import '@xcan-cloud/markdown/styles';
+import { MarkdownProvider, MarkdownEditor, ThemeSwitcher } from '@xcan-cloud/markdown';
+
+function App() {
+  return (
+    // defaultVariant="angus"：浅色 → markdown-theme-angus
+    //                          深色 → markdown-theme-angus-dark
+    <MarkdownProvider defaultTheme="auto" defaultVariant="angus">
+      <ThemeSwitcher />
+      <MarkdownEditor initialValue="# 你好" layout="split" />
+    </MarkdownProvider>
+  );
+}
+```
+
+#### GitHub 皮肤
+
+GitHub 皮肤需要额外引入 CSS：
+
+```tsx
+import '@xcan-cloud/markdown/styles';
+import '@xcan-cloud/markdown/themes/github.css';   // ← 需单独引入
+import { MarkdownProvider, MarkdownRenderer } from '@xcan-cloud/markdown';
+
+function App() {
+  return (
+    // defaultVariant="github"：浅色 → markdown-theme-github
+    //                           深色 → markdown-theme-github-dark
+    <MarkdownProvider defaultTheme="light" defaultVariant="github">
+      <MarkdownRenderer source="# Hello" />
+    </MarkdownProvider>
+  );
+}
+```
+
+#### 运行时切换皮肤
+
+```tsx
+import { useTheme } from '@xcan-cloud/markdown';
+
+function VariantSwitcher() {
+  const { variant, setVariant } = useTheme();
+  return (
+    <select value={variant} onChange={(e) => setVariant(e.target.value as any)}>
+      <option value="default">默认</option>
+      <option value="angus">Angus</option>
+      <option value="github">GitHub</option>
+    </select>
+  );
+}
 ```
 
 ### CSS 变量

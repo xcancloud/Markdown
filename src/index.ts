@@ -67,7 +67,9 @@ export {
   MarkdownProvider,
   useTheme,
   useLocale,
+  resolveThemeClass,
   type ThemeMode,
+  type ThemeVariant,
   type MarkdownProviderProps,
 } from './context/MarkdownProvider';
 

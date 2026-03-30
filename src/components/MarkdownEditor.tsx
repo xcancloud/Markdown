@@ -16,7 +16,7 @@ import {
 import { closeBrackets } from '@codemirror/autocomplete';
 import { MarkdownRenderer, type MarkdownRendererProps } from './MarkdownRenderer';
 import { ToolbarIcon } from './ToolbarIcon';
-import { useTheme, useLocale } from '../context/MarkdownProvider';
+import { useTheme, useLocale, resolveThemeClass } from '../context/MarkdownProvider';
 
 // ============================================================
 // Props
@@ -197,7 +197,7 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
     const [currentLayout, setCurrentLayout] = useState<LayoutMode>(layoutProp);
     const [headingMenuOpen, setHeadingMenuOpen] = useState(false);
     const headingBtnRef = useRef<HTMLDivElement>(null);
-    const { resolvedTheme } = useTheme();
+    const { resolvedMode, variant } = useTheme();
     const { messages } = useLocale();
     const editorRootRef = useRef<HTMLDivElement>(null);
     const isTruncatingRef = useRef(false);
@@ -450,16 +450,16 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
       layout === 'preview-only' ||
       (layout === 'tabs' && activeTab === 'preview');
 
-    const effectiveTheme = rendererProps.theme
-      ? rendererProps.theme === 'auto'
-        ? resolvedTheme
-        : rendererProps.theme
-      : resolvedTheme;
+    const effectiveMode =
+      rendererProps.theme && rendererProps.theme !== 'auto'
+        ? rendererProps.theme
+        : resolvedMode;
+    const editorThemeClass = resolveThemeClass(variant, effectiveMode);
 
     return (
       <div
         ref={editorRootRef}
-        className={`markdown-editor layout-${layout} markdown-theme-${effectiveTheme}${isFullscreen ? ' markdown-editor-fullscreen' : ''}${rendererProps.className ? ` ${rendererProps.className}` : ''}`}
+        className={`markdown-editor layout-${layout} ${editorThemeClass}${isFullscreen ? ' markdown-editor-fullscreen' : ''}${rendererProps.className ? ` ${rendererProps.className}` : ''}`}
       >
         {/* 工具栏 */}
         {toolbar.show && (

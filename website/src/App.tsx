@@ -5,6 +5,7 @@ import {
   MarkdownEditor,
   ThemeSwitcher,
   LocaleSwitcher,
+  type ThemeVariant,
 } from '@xcan-cloud/markdown';
 import '../../src/styles/markdown-renderer.css';
 import '../../src/styles/markdown-editor.css';
@@ -494,9 +495,7 @@ function TallEditor() {
 // ============================================================
 
 type ShowcaseTab = 'renderer' | 'editor';
-type StyleTheme = 'default' | 'angus' | 'github';
-
-const STYLE_THEMES: { value: StyleTheme; label: { en: string; zh: string } }[] = [
+const STYLE_THEMES: { value: ThemeVariant; label: { en: string; zh: string } }[] = [
   { value: 'default', label: { en: 'Default', zh: '默认' } },
   { value: 'angus', label: { en: 'Angus', zh: 'Angus' } },
   { value: 'github', label: { en: 'GitHub', zh: 'GitHub' } },
@@ -507,13 +506,11 @@ const App: React.FC = () => {
   const [showcaseTab, setShowcaseTab] = useState<ShowcaseTab>('renderer');
   const [codeTab, setCodeTab] = useState<keyof typeof CODE_EXAMPLES>('basic');
   const [copied, setCopied] = useState(false);
-  const [styleTheme, setStyleTheme] = useState<StyleTheme>('default');
+  const [styleTheme, setStyleTheme] = useState<ThemeVariant>('angus');
 
   const t = SITE_TEXT[lang];
   const demoSource = lang === 'zh' ? DEMO_SOURCE_ZH : DEMO_SOURCE_EN;
   const componentLocale = lang === 'zh' ? 'zh-CN' : 'en-US';
-
-  const styleClassName = styleTheme !== 'default' ? `markdown-theme-${styleTheme}` : '';
 
   const toggleLang = useCallback(() => {
     setLang((l) => (l === 'en' ? 'zh' : 'en'));
@@ -641,7 +638,7 @@ const App: React.FC = () => {
             <h2>{t.demo.heading}</h2>
             <p>{t.demo.subheading}</p>
           </div>
-          <MarkdownProvider defaultTheme="light" defaultLocale={componentLocale}>
+          <MarkdownProvider key={styleTheme} defaultTheme="light" defaultVariant={styleTheme} defaultLocale={componentLocale}>
             <div className="showcase-controls">
               <ThemeSwitcher />
               <LocaleSwitcher />
@@ -677,13 +674,11 @@ const App: React.FC = () => {
                   <MarkdownRenderer
                     source={demoSource}
                     showToc
-                    className={styleClassName}
                     options={{ gfm: true, math: true, emoji: true }}
                   />
                 ) : (
                   <MarkdownEditor
                     initialValue={demoSource}
-                    className={styleClassName}
                     options={{ gfm: true, math: true, emoji: true }}
                   />
                 )}

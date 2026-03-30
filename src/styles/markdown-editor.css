@@ -382,7 +382,8 @@
 }
 
 .markdown-editor.markdown-theme-dark .markdown-editor-counter,
-.markdown-editor.markdown-theme-github-dark .markdown-editor-counter {
+.markdown-editor.markdown-theme-github-dark .markdown-editor-counter,
+.markdown-editor.markdown-theme-angus-dark .markdown-editor-counter {
   background: var(--md-code-bg, #161b22);
   color: var(--md-text-secondary);
   border-top-color: var(--md-border);
