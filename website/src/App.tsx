@@ -21,7 +21,7 @@ const SITE_TEXT = {
   en: {
     nav: { features: 'Features', demo: 'Demo', code: 'Code', github: 'GitHub' },
     hero: {
-      badge: 'v1.0.9 — Production Ready',
+      badge: 'v1.5.0 — Production Ready',
       title1: 'The ',
       titleHighlight: 'Markdown Component',
       title2: ' for Modern React Apps',
@@ -92,7 +92,7 @@ const SITE_TEXT = {
   zh: {
     nav: { features: '特性', demo: '演示', code: '代码', github: 'GitHub' },
     hero: {
-      badge: 'v1.0.9 — 生产就绪',
+      badge: 'v1.5.0 — 生产就绪',
       title1: '现代 React 应用的',
       titleHighlight: 'Markdown 组件',
       title2: '',

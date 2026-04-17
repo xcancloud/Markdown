@@ -5,7 +5,7 @@
      --md-font-body, --md-font-size-base, --md-font-mono
    ============================================================ */
 .markdown-editor {
-  border: 1px solid var(--md-border, #d0d7de);
+  border: 0.5px solid var(--md-border, #d0d7de);
   border-radius: 6px;
   overflow: hidden;
   display: flex;
@@ -114,6 +114,13 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  /* 隐藏滚动条，保留滚动能力 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.markdown-editor-panel::-webkit-scrollbar {
+  display: none;
 }
 
 .markdown-editor-panel .cm-editor {
@@ -130,9 +137,10 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
+  max-height: inherit;
   overflow: auto;
   padding: 16px;
-  border-left: 1px solid var(--md-border, #d0d7de);
+  border-left: 0.5px solid var(--md-border, #d0d7de);
   /* 隐藏滚动条，保留滚动（与工具栏横向滚动一致） */
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -228,7 +236,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 9999;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  z-index: 99999;
   border-radius: 0;
   background: var(--md-bg, #ffffff);
 }

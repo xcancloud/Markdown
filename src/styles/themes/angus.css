@@ -179,7 +179,7 @@
   padding: 0.15em 0.4em;
   font-size: 0.875em;
   background-color: var(--md-code-bg);
-  border: 1px solid var(--md-border);
+  border: 0.5px solid var(--md-border);
   border-radius: 5px;
   font-family: var(--md-font-mono);
   font-weight: 450;
@@ -196,7 +196,7 @@
   margin: 1.5em 0;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid var(--md-border);
+  border: 0.5px solid var(--md-border);
   background-color: var(--md-code-bg);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -238,7 +238,7 @@
   font-size: 0.8125em;
   line-height: 1.6;
   background-color: var(--md-code-bg);
-  border: 1px solid var(--md-border);
+  border: 0.5px solid var(--md-border);
   border-radius: 8px;
   font-family: var(--md-font-mono);
 }
