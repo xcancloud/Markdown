@@ -78,10 +78,23 @@
   font-size: 2em;
   font-weight: 700;
   letter-spacing: -0.025em;
-  border-bottom: 2px solid var(--md-border);
-  padding-bottom: 0.4em;
+  border-bottom: none;
+  padding-bottom: 0.5em;
   margin-top: 1.5em;
   margin-bottom: 1em;
+  position: relative;
+}
+
+.markdown-theme-angus .markdown-body h1::after,
+.markdown-theme-angus-dark .markdown-body h1::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--md-accent) 0%, var(--md-border) 50%, transparent 100%);
+  border-radius: 1px;
 }
 
 .markdown-theme-angus .markdown-body h2,
@@ -89,10 +102,23 @@
   font-size: 1.5em;
   font-weight: 650;
   letter-spacing: -0.02em;
-  border-bottom: 1px solid var(--md-border);
-  padding-bottom: 0.3em;
+  border-bottom: none;
+  padding-bottom: 0.4em;
   margin-top: 1.75em;
   margin-bottom: 0.75em;
+  position: relative;
+}
+
+.markdown-theme-angus .markdown-body h2::after,
+.markdown-theme-angus-dark .markdown-body h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--md-accent) 0%, var(--md-border) 70%, transparent 100%);
+  border-radius: 0.5px;
 }
 
 .markdown-theme-angus .markdown-body h3,
@@ -161,14 +187,37 @@
   color: var(--md-link);
   text-decoration: none;
   text-underline-offset: 3px;
-  transition: color 0.15s ease;
+  transition: color 0.2s ease;
+  position: relative;
+}
+
+.markdown-theme-angus .markdown-body a::after,
+.markdown-theme-angus-dark .markdown-body a::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--md-accent-hover), var(--md-accent));
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .markdown-theme-angus .markdown-body a:hover,
 .markdown-theme-angus-dark .markdown-body a:hover {
   color: var(--md-accent-hover);
-  text-decoration: underline;
-  text-decoration-color: var(--md-accent-hover);
+  text-decoration: none;
+}
+
+.markdown-theme-angus .markdown-body a:hover::after,
+.markdown-theme-angus-dark .markdown-body a:hover::after {
+  width: 100%;
+}
+
+/* Exclude heading anchors from underline animation */
+.markdown-theme-angus .markdown-body :is(h1, h2, h3, h4, h5, h6) a::after,
+.markdown-theme-angus-dark .markdown-body :is(h1, h2, h3, h4, h5, h6) a::after {
+  display: none;
 }
 
 /* ============================
@@ -176,15 +225,16 @@
    ============================ */
 .markdown-theme-angus .markdown-body code:not(pre code),
 .markdown-theme-angus-dark .markdown-body code:not(pre code) {
-  padding: 0.15em 0.4em;
+  padding: 0.2em 0.45em;
   font-size: 0.875em;
-  background-color: var(--md-code-bg);
-  border: 0.5px solid var(--md-border);
-  border-radius: 5px;
+  background: linear-gradient(135deg, var(--md-code-bg) 0%, rgba(var(--md-accent-rgb, 59, 130, 246), 0.04) 100%);
+  border: none;
+  border-radius: 6px;
   font-family: var(--md-font-mono);
   font-weight: 450;
   color: var(--md-text);
   word-break: break-word;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
 /* ============================
@@ -194,11 +244,17 @@
 .markdown-theme-angus-dark .markdown-body .code-block {
   position: relative;
   margin: 1.5em 0;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   border: 0.5px solid var(--md-border);
   background-color: var(--md-code-bg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.02);
+  transition: box-shadow 0.2s ease;
+}
+
+.markdown-theme-angus .markdown-body .code-block:hover,
+.markdown-theme-angus-dark .markdown-body .code-block:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
 }
 
 /* Language badge */
@@ -249,11 +305,26 @@
 .markdown-theme-angus .markdown-body blockquote,
 .markdown-theme-angus-dark .markdown-body blockquote {
   margin: 1.5em 0;
-  padding: 0.5em 1em;
+  padding: 0.75em 1.25em;
   color: var(--md-blockquote-text);
-  border-left: 3px solid var(--md-accent);
-  background: var(--md-accent-subtle);
-  border-radius: 0 6px 6px 0;
+  border-left: 3px solid transparent;
+  border-image: linear-gradient(to bottom, var(--md-accent) 0%, var(--md-accent-subtle) 100%) 1;
+  background: linear-gradient(135deg, var(--md-accent-subtle) 0%, transparent 100%);
+  border-radius: 0 8px 8px 0;
+  position: relative;
+}
+
+.markdown-theme-angus .markdown-body blockquote::before,
+.markdown-theme-angus-dark .markdown-body blockquote::before {
+  content: '"';
+  position: absolute;
+  top: -8px;
+  left: 8px;
+  font-size: 2.5em;
+  font-family: Georgia, serif;
+  color: var(--md-accent);
+  opacity: 0.2;
+  line-height: 1;
 }
 
 .markdown-theme-angus .markdown-body blockquote p:last-child,
@@ -343,14 +414,15 @@
 .markdown-theme-angus-dark .markdown-body img {
   max-width: 100%;
   height: auto;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 0.2s ease;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .markdown-theme-angus .markdown-body img:hover,
 .markdown-theme-angus-dark .markdown-body img:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 16px 48px rgba(0, 0, 0, 0.06);
+  transform: scale(1.01) translateY(-2px);
 }
 
 /* ============================
@@ -602,8 +674,9 @@
 }
 
 .markdown-theme-angus-dark .markdown-body code:not(pre code) {
-  background-color: var(--md-code-bg, #1e293b);
+  background: linear-gradient(135deg, var(--md-code-bg, #1e293b) 0%, rgba(96, 165, 250, 0.06) 100%);
   color: var(--md-text, #e2e8f0);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .markdown-theme-angus-dark .markdown-body code:not(pre code) span {
@@ -619,7 +692,8 @@
 }
 
 .markdown-editor.markdown-theme-angus-dark .markdown-toolbar {
-  background: var(--md-bg);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
   border-bottom-color: var(--md-border);
 }
 
@@ -631,6 +705,8 @@
   background: var(--md-accent-subtle);
   border-color: var(--md-border);
   color: var(--md-text);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .markdown-editor.markdown-theme-angus-dark .toolbar-separator {
@@ -640,6 +716,7 @@
 .markdown-editor.markdown-theme-angus-dark .toolbar-dropdown {
   background: var(--md-bg);
   border-color: var(--md-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.2);
 }
 
 .markdown-editor.markdown-theme-angus-dark .toolbar-dropdown-item {

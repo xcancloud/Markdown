@@ -18,10 +18,11 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: nowrap;
-  gap: 2px;
-  padding: 4px 8px;
-  background: var(--md-code-bg, #f6f8fa);
-  border-bottom: 1px solid var(--md-border, #d0d7de);
+  gap: 4px;
+  padding: 6px 12px;
+  background: rgba(246, 248, 250, 0.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--md-border, #d0d7de);
   flex-shrink: 0;
   overflow-x: auto;
   /* 隐藏滚动条，但保留滚动能力 */
@@ -35,7 +36,7 @@
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 1px;
+  gap: 2px;
   flex-shrink: 0;
   flex-wrap: nowrap;
 }
@@ -49,7 +50,7 @@
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   flex-shrink: 0;
   flex-wrap: nowrap;
 }
@@ -58,33 +59,37 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
   color: var(--md-text-secondary, #656d76);
   cursor: pointer;
   font-size: 14px;
-  transition: all 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toolbar-btn:hover {
   background: var(--md-bg, #ffffff);
   border-color: var(--md-border, #d0d7de);
   color: var(--md-text, #1f2328);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .toolbar-btn:active {
-  transform: scale(0.95);
+  transform: translateY(0) scale(0.96);
+  box-shadow: none;
 }
 
 .toolbar-separator {
-  width: 1px;
-  height: 20px;
+  width: 0.5px;
+  height: 16px;
   background: var(--md-border, #d0d7de);
-  margin: 0 4px;
+  margin: 0 6px;
+  opacity: 0.6;
 }
 
 .toolbar-icon {
@@ -272,34 +277,48 @@
 
 .toolbar-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   left: 0;
   z-index: 1000;
   min-width: 140px;
-  padding: 4px;
+  padding: 6px;
   background: var(--md-bg, #ffffff);
-  border: 1px solid var(--md-border, #d0d7de);
-  border-radius: 6px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border: 0.5px solid var(--md-border, #d0d7de);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 12px 32px rgba(0, 0, 0, 0.06);
+  animation: dropdownFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top left;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .toolbar-dropdown-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
   color: var(--md-text, #1f2328);
   cursor: pointer;
   font-size: 13px;
-  transition: background 0.12s;
+  transition: all 0.15s ease;
 }
 
 .toolbar-dropdown-item:hover {
   background: var(--md-code-bg, #f6f8fa);
+  transform: translateX(2px);
 }
 
 .toolbar-btn.active {
@@ -345,7 +364,8 @@
 }
 
 .markdown-editor.markdown-theme-dark .markdown-toolbar {
-  background: var(--md-bg);
+  background: rgba(13, 17, 23, 0.85);
+  backdrop-filter: blur(8px);
   border-bottom-color: var(--md-border);
 }
 
@@ -357,6 +377,8 @@
   background: var(--md-bg);
   border-color: var(--md-border);
   color: var(--md-text);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .markdown-editor.markdown-theme-dark .toolbar-separator {
@@ -366,6 +388,7 @@
 .markdown-editor.markdown-theme-dark .toolbar-dropdown {
   background: var(--md-bg);
   border-color: var(--md-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.2);
 }
 
 .markdown-editor.markdown-theme-dark .toolbar-dropdown-item {
@@ -387,18 +410,21 @@
 
 /* Character counter */
 .markdown-editor-counter {
-  padding: 4px 12px;
-  font-size: 12px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--md-text-secondary, #656d76);
   text-align: right;
-  border-top: 1px solid var(--md-border, #d0d7de);
-  background: var(--md-code-bg, #f6f8fa);
+  border-top: 0.5px solid var(--md-border, #d0d7de);
+  background: rgba(246, 248, 250, 0.6);
+  backdrop-filter: blur(4px);
 }
 
 .markdown-editor.markdown-theme-dark .markdown-editor-counter,
 .markdown-editor.markdown-theme-github-dark .markdown-editor-counter,
 .markdown-editor.markdown-theme-angus-dark .markdown-editor-counter {
-  background: var(--md-code-bg, #161b22);
+  background: rgba(22, 27, 34, 0.7);
+  backdrop-filter: blur(4px);
   color: var(--md-text-secondary);
   border-top-color: var(--md-border);
 }
