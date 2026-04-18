@@ -107,6 +107,41 @@
   display: block;
 }
 
+.markdown-tabs-switcher {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+  margin: 8px 12px 0;
+  padding: 2px;
+  border: 0.5px solid var(--md-border, #d0d7de);
+  border-radius: 8px;
+  background: var(--md-code-bg, #f6f8fa);
+}
+
+.markdown-tabs-switcher-btn {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--md-text-secondary, #656d76);
+  padding: 4px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.markdown-tabs-switcher-btn:hover {
+  color: var(--md-text, #1f2328);
+  background: var(--md-bg, #ffffff);
+}
+
+.markdown-tabs-switcher-btn.active {
+  color: var(--md-link, #0969da);
+  background: var(--md-bg, #ffffff);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
 /* 编辑面板：min-height:0 让超出高度在面板内滚动，避免把工具栏挤出或顶变形 */
 .markdown-editor-panels {
   display: flex;

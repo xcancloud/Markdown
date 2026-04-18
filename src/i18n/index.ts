@@ -30,6 +30,7 @@ export interface I18nMessages {
     layout: string;
     'layout_preview-only': string;
     'layout_editor-only': string;
+    layout_tabs: string;
     layout_split: string;
   };
   // Editor
@@ -93,6 +94,7 @@ const zhCN: I18nMessages = {
     layout: '布局',
     'layout_preview-only': '预览',
     'layout_editor-only': '编辑',
+    layout_tabs: '标签页',
     layout_split: '分屏',
   },
   editor: {
@@ -152,6 +154,7 @@ const enUS: I18nMessages = {
     layout: 'Layout',
     'layout_preview-only': 'Preview',
     'layout_editor-only': 'Editor',
+    layout_tabs: 'Tabs',
     layout_split: 'Split',
   },
   editor: {

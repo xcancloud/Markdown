@@ -179,6 +179,7 @@ Extends renderer props **except** `source` is replaced by editor value APIs.
 | `value` | `string` | — | Controlled value |
 | `onChange` | `(value: string) => void` | — | Content change |
 | `layout` | `LayoutMode` | `'split'` | `split` \| `tabs` \| `editor-only` \| `preview-only` |
+| `layoutModes` | `LayoutMode[]` | `['split', 'tabs', 'editor-only', 'preview-only']` | Controls which layout buttons are shown and the order of `layout` toolbar cycling |
 | `minHeight` / `maxHeight` | `string` | — | Editor area sizing |
 | `toolbar` | `ToolbarConfig` | default set | `false` to hide, or item list |
 | `readOnly` | `boolean` | `false` | Read-only editor |
@@ -429,6 +430,45 @@ setLocale('zh-CN');
 ```tsx
 <MarkdownEditor toolbar={false} />
 <MarkdownEditor toolbar={['bold', 'italic', '|', 'code']} />
+```
+
+> In `layout="tabs"`, when `toolbar={false}`, a minimal built-in switcher (Editor / Preview) is still rendered to keep tabs mode operable.
+
+### Layout and layoutModes
+
+`LayoutMode` is publicly exported and can be used in app-side TypeScript:
+
+```tsx
+import { MarkdownEditor, type LayoutMode } from '@xcan-cloud/markdown';
+```
+
+`layout` controls the currently active layout mode:
+
+- `split`: editor and preview shown side by side
+- `tabs`: one pane at a time (Editor / Preview), switchable by toolbar preview action or built-in tabs switcher
+- `editor-only`: editor pane only
+- `preview-only`: preview pane only
+
+`layoutModes` controls **which modes are available** in the layout UI and **the cycle order** of the `layout` toolbar action.
+
+- Default: `['split', 'tabs', 'editor-only', 'preview-only']`
+- Empty array falls back to the default list
+- If current `layout` is not included in `layoutModes`, it falls back to `layoutModes[0]`
+
+Examples:
+
+```tsx
+// Restrict to edit/preview full-page switching only
+<MarkdownEditor
+  layout="editor-only"
+  layoutModes={['editor-only', 'preview-only']}
+/>
+
+// Keep split + tabs only
+<MarkdownEditor
+  layout="tabs"
+  layoutModes={['tabs', 'split']}
+/>
 ```
 
 ### Height

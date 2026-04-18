@@ -33,7 +33,8 @@ export interface MarkdownEditorProps
   layout?: LayoutMode;
   /**
    * 工具栏可切换的布局模式（左侧按钮与「布局」快捷键循环均使用）。
-   * 默认含分屏；传入仅 `editor-only` 与 `preview-only` 时仅支持编辑 / 预览整页切换。
+    * 默认包含 split / tabs / editor-only / preview-only。
+    * 传入仅 `editor-only` 与 `preview-only` 时仅支持编辑 / 预览整页切换。
    */
   layoutModes?: LayoutMode[];
   /** 编辑器最小高度 */
@@ -117,6 +118,7 @@ const DEFAULT_TOOLBAR: ToolbarItem[] = [
   'undo',
   'redo',
   '|',
+  'preview',
   'layout',
   'fullscreen',
 ];
@@ -124,9 +126,10 @@ const DEFAULT_TOOLBAR: ToolbarItem[] = [
 const HEADING_LEVELS: ToolbarItem[] = ['h1', 'h2', 'h3', 'h4', 'h5'];
 
 export const DEFAULT_MARKDOWN_EDITOR_LAYOUT_MODES: LayoutMode[] = [
-  'preview-only',
-  'editor-only',
   'split',
+  'tabs',
+  'editor-only',
+  'preview-only',
 ];
 
 function normalizeToolbarConfig(config: ToolbarConfig | undefined): { show: boolean; items: ToolbarItem[] } {
@@ -176,7 +179,7 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
     initialValue = '',
     value,
     onChange,
-    layout: layoutProp = 'preview-only',
+    layout: layoutProp = 'split',
     layoutModes: layoutModesProp = DEFAULT_MARKDOWN_EDITOR_LAYOUT_MODES,
     minHeight = '400px',
     maxHeight = '800px',
@@ -529,6 +532,30 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
                 ),
               )}
             </div>
+          </div>
+        )}
+
+        {/* tabs 模式下即使隐藏工具栏，也保留最小切换入口 */}
+        {!toolbar.show && layout === 'tabs' && (
+          <div className="markdown-tabs-switcher" role="tablist" aria-label={messages.toolbar.layout_tabs}>
+            <button
+              className={`markdown-tabs-switcher-btn${activeTab === 'editor' ? ' active' : ''}`}
+              onClick={() => setActiveTab('editor')}
+              role="tab"
+              aria-selected={activeTab === 'editor'}
+              title={messages.toolbar['layout_editor-only']}
+            >
+              {messages.toolbar['layout_editor-only']}
+            </button>
+            <button
+              className={`markdown-tabs-switcher-btn${activeTab === 'preview' ? ' active' : ''}`}
+              onClick={() => setActiveTab('preview')}
+              role="tab"
+              aria-selected={activeTab === 'preview'}
+              title={messages.toolbar['layout_preview-only']}
+            >
+              {messages.toolbar['layout_preview-only']}
+            </button>
           </div>
         )}
 

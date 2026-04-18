@@ -179,6 +179,7 @@ function Page({ markdown }: { markdown: string }) {
 | `value` | `string` | — | 受控内容 |
 | `onChange` | `(value: string) => void` | — | 内容变化 |
 | `layout` | `LayoutMode` | `'split'` | `split` \| `tabs` \| `editor-only` \| `preview-only` |
+| `layoutModes` | `LayoutMode[]` | `['split', 'tabs', 'editor-only', 'preview-only']` | 控制布局按钮显示范围，以及 `layout` 工具栏动作的循环顺序 |
 | `minHeight` / `maxHeight` | `string` | — | 编辑区域高度 |
 | `toolbar` | `ToolbarConfig` | 默认集合 | `false` 隐藏，或传入按钮项数组 |
 | `readOnly` | `boolean` | `false` | 只读 |
@@ -429,6 +430,45 @@ setLocale('zh-CN');
 ```tsx
 <MarkdownEditor toolbar={false} />
 <MarkdownEditor toolbar={['bold', 'italic', '|', 'code']} />
+```
+
+> 在 `layout="tabs"` 场景下，如果 `toolbar={false}`，组件仍会渲染一个内置的最小切换条（编辑 / 预览），以保证 tabs 模式可操作。
+
+### layout 与 layoutModes
+
+`LayoutMode` 已公开导出，可在业务侧 TypeScript 直接使用：
+
+```tsx
+import { MarkdownEditor, type LayoutMode } from '@xcan-cloud/markdown';
+```
+
+`layout` 用于控制当前布局：
+
+- `split`：编辑区与预览区并排显示
+- `tabs`：一次仅显示一个面板（编辑 / 预览），通过预览动作或内置切换条切换
+- `editor-only`：仅显示编辑区
+- `preview-only`：仅显示预览区
+
+`layoutModes` 用于控制 **可用布局集合**，以及 `layout` 工具栏动作的 **循环顺序**。
+
+- 默认值：`['split', 'tabs', 'editor-only', 'preview-only']`
+- 传入空数组时会回退到默认集合
+- 若当前 `layout` 不在 `layoutModes` 中，会自动回退到 `layoutModes[0]`
+
+示例：
+
+```tsx
+// 仅保留“编辑整页 / 预览整页”两种布局
+<MarkdownEditor
+  layout="editor-only"
+  layoutModes={['editor-only', 'preview-only']}
+/>
+
+// 仅保留 tabs 与 split
+<MarkdownEditor
+  layout="tabs"
+  layoutModes={['tabs', 'split']}
+/>
 ```
 
 ### 高度设置

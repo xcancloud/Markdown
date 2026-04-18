@@ -60,6 +60,7 @@ const lucideIcons: Record<string, React.ReactNode> = {
   layout: <LayoutDashboard size={ICON_SIZE} />,
   'layout-editor-only': <SquarePen size={ICON_SIZE} />,
   'layout-split': <Columns2 size={ICON_SIZE} />,
+  'layout-tabs': <LayoutDashboard size={ICON_SIZE} />,
   'layout-preview-only': <Eye size={ICON_SIZE} />,
 };
 
