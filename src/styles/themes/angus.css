@@ -688,7 +688,7 @@
    ============================ */
 .markdown-editor.markdown-theme-angus-dark {
   border-color: var(--md-border);
-  background: var(--md-bg);
+  background: transparent;
 }
 
 .markdown-editor.markdown-theme-angus-dark .markdown-toolbar {
@@ -728,11 +728,12 @@
 }
 
 .markdown-editor.markdown-theme-angus-dark .markdown-preview-panel {
+  background: transparent;
   border-left-color: var(--md-border);
 }
 
 .markdown-editor.markdown-theme-angus-dark .cm-editor {
-  background-color: var(--md-bg);
+  background-color: transparent;
 }
 
 .markdown-editor.markdown-theme-angus-dark .cm-editor .cm-content {
@@ -754,7 +755,7 @@
 }
 
 .markdown-editor.markdown-theme-angus-dark .cm-editor .cm-gutters {
-  background-color: var(--md-bg);
+  background-color: transparent;
   border-right-color: var(--md-border);
   color: var(--md-text-secondary);
 }
