@@ -354,8 +354,8 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
           EditorState.readOnly.of(readOnly),
           ...(placeholder !== undefined
             ? [cmPlaceholder(placeholder)]
-            : messages.placeholder
-              ? [cmPlaceholder(messages.placeholder)]
+            : messages.editor.placeholder
+              ? [cmPlaceholder(messages.editor.placeholder)]
               : []),
           EditorView.theme({
             '&': { minHeight, maxHeight },
