@@ -170,7 +170,7 @@
 .markdown-editor-panel .cm-editor .cm-content {
   font-family: var(--md-font-mono, ui-monospace, SFMono-Regular, 'SF Mono',
     Menlo, Consolas, monospace);
-  font-size: var(--md-font-size-base, 14px);
+  font-size: var(--md-font-size-base, 13px);
 }
 
 .markdown-preview-panel {

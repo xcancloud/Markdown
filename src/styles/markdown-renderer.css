@@ -3,7 +3,7 @@
 
    正文字体变量（可外部覆盖，在 :root 或父级中设置）：
      --md-font-body: 'Your Font', sans-serif;
-     --md-font-size-base: 18px;
+    --md-font-size-base: 13px;
      --md-font-mono: 'Consolas', monospace;
      --md-line-height: 1.6;
    ============================================================ */
@@ -12,7 +12,7 @@
     Arial, sans-serif;
   --md-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
     monospace;
-  --md-font-size-base: 14px;
+  --md-font-size-base: 13px;
   --md-line-height: 1.7;
 }
 

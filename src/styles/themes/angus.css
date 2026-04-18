@@ -32,7 +32,7 @@
     Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
   --md-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular,
     'SF Mono', Menlo, Consolas, monospace;
-  --md-font-size-base: 15px;
+  --md-font-size-base: 13px;
   --md-line-height: 1.75;
 }
 
@@ -61,7 +61,7 @@
     Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
   --md-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular,
     'SF Mono', Menlo, Consolas, monospace;
-  --md-font-size-base: 15px;
+  --md-font-size-base: 13px;
   --md-line-height: 1.75;
 }
 
@@ -681,6 +681,10 @@
 
 .markdown-theme-angus-dark .markdown-body code:not(pre code) span {
   color: inherit;
+}
+
+.markdown-renderer.markdown-theme-angus-dark {
+  background: transparent;
 }
 
 /* ============================
