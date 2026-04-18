@@ -189,6 +189,7 @@ Extends renderer props **except** `source` is replaced by editor value APIs.
 | `extensions` | `Extension[]` | `[]` | Extra CodeMirror extensions |
 | `shortcuts` | `ShortcutMap` | — | Custom keymap handlers |
 | `maxLength` | `number` | — | Hard limit + counter UI |
+| `placeholder` | `string` | i18n default | Editor placeholder text |
 
 All **`MarkdownRenderer`** props except `source` also apply to the preview pane (e.g. `options`, `theme`, `showToc`).
 

@@ -189,6 +189,7 @@ function Page({ markdown }: { markdown: string }) {
 | `extensions` | `Extension[]` | `[]` | 额外 CodeMirror 扩展 |
 | `shortcuts` | `ShortcutMap` | — | 自定义快捷键 |
 | `maxLength` | `number` | — | 最大字数 + 底部计数 UI |
+| `placeholder` | `string` | i18n 默认文本 | 编辑器占位提示文本 |
 
 除 `source` 外，**`MarkdownRenderer`** 的 props 同样作用于预览区（如 `options`、`theme`、`showToc`）。
 

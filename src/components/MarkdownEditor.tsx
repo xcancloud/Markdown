@@ -5,6 +5,7 @@ import {
   keymap,
   drawSelection,
   highlightActiveLine,
+  placeholder as cmPlaceholder,
 } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap, undo, redo } from '@codemirror/commands';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
@@ -57,6 +58,8 @@ export interface MarkdownEditorProps
   shortcuts?: ShortcutMap;
   /** 最大字符数 */
   maxLength?: number;
+  /** 编辑器占位提示文本 */
+  placeholder?: string;
 }
 
 export type ToolbarConfig = boolean | ToolbarItem[] | { show?: boolean; items?: ToolbarItem[] };
@@ -190,6 +193,7 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
     onAutoSave,
     autoSaveInterval = 30000,
     maxLength,
+    placeholder,
     ...rendererProps
   }) => {
     const editorContainerRef = useRef<HTMLDivElement>(null);
@@ -348,6 +352,11 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
           pasteHandler,
           EditorView.lineWrapping,
           EditorState.readOnly.of(readOnly),
+          ...(placeholder !== undefined
+            ? [cmPlaceholder(placeholder)]
+            : messages.placeholder
+              ? [cmPlaceholder(messages.placeholder)]
+              : []),
           EditorView.theme({
             '&': { minHeight, maxHeight },
             '.cm-scroller': { overflow: 'auto' },
