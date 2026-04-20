@@ -21,7 +21,7 @@ const SITE_TEXT = {
   en: {
     nav: { features: 'Features', demo: 'Demo', code: 'Code', github: 'GitHub' },
     hero: {
-      badge: 'v1.5.0 — Production Ready',
+      badge: 'v1.6.0 — Production Ready',
       title1: 'The ',
       titleHighlight: 'Markdown Component',
       title2: ' for Modern React Apps',
