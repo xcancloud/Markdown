@@ -30,6 +30,8 @@ Production-grade, extensible Markdown **rendering** and **editing** for React �
 - [Hooks](#hooks)
 - [Component Architecture](#component-architecture)
 - [Sub-Projects](#sub-projects)
+- [Inline HTML](#inline-html)
+- [Image Paste Upload](#image-paste-upload)
 - [Customization](#customization)
 - [Technology Stack](#technology-stack)
 - [Browser Support](#browser-support)
@@ -183,7 +185,10 @@ Extends renderer props **except** `source` is replaced by editor value APIs.
 | `minHeight` / `maxHeight` | `string` | — | Editor area sizing |
 | `toolbar` | `ToolbarConfig` | default set | `false` to hide, or item list |
 | `readOnly` | `boolean` | `false` | Read-only editor |
-| `onImageUpload` | `(file: File) => Promise<string>` | — | Return URL for pasted/dropped images |
+| `onImageUpload` | `(file: File) => Promise<string>` | — | Return URL for pasted/dropped images. See [Image Paste Upload](#image-paste-upload). |
+| `onImageUploadSettled` | `(r: { success: true; url: string; file: File } \| { success: false; error: unknown; file: File }) => void` | — | Fired after each upload resolves or rejects (for toast / logging) |
+| `mixedPastePolicy` | `'image-first' \| 'text-first' \| 'image-and-text'` | `'image-first'` | Strategy when the clipboard contains **both** an image and text |
+| `onPaste` | `(payload: ClipboardPayload, event: ClipboardEvent) => boolean \| void` | — | Custom paste hook; return `true` to skip the default flow |
 | `onAutoSave` | `(value: string) => void` | — | Periodic save callback |
 | `autoSaveInterval` | `number` | `30000` | Auto-save interval (ms) |
 | `extensions` | `Extension[]` | `[]` | Extra CodeMirror extensions |
@@ -278,6 +283,7 @@ interface MarkdownRendererProps {
 | `MarkdownWorkerRenderer`, `RenderCache`, `splitHtmlBlocks` | Worker / cache utilities |
 | `copyToClipboard` | Clipboard helper |
 | `slug`, `resetSlugger` | Heading slug utilities |
+| `performImageUpload`, `createImageUploadLifecycle`, `encodeMarkdownUrl`, `sanitizeAltText`, `isImageFile`, `collectImageFiles`, `generateUploadId` | Image paste/drop upload helpers (see [Image Paste Upload](#image-paste-upload)) |
 | `setLocale`, `getLocale`, `t`, `getMessages` | i18n API |
 | `ThemeVariant`, `resolveThemeClass` | Skin type and CSS-class resolver |
 
@@ -318,6 +324,103 @@ interface MarkdownRendererProps {
 | --- | --- |
 | [`website/`](./website/) | Vite dev playground / demo app for local development |
 | [`src/styles/`](./src/styles/) | Base `markdown-renderer.css` and theme presets (`themes/github.css`, `themes/angus.css`) |
+
+## Inline HTML
+
+Raw HTML is supported end-to-end (parse → sanitize → render) when the
+default `allowHtml: true` is active. The sanitize schema explicitly
+permits `class`, `style`, `id` and `data-*` on every element, so
+**sized `<img>` tags survive the pipeline**:
+
+```markdown
+<img src="diagrams/svg/02-lifecycle.svg"
+     alt="Request lifecycle"
+     style="max-width:1024px;width:100%;height:auto;" />
+```
+
+Security invariants that are still enforced:
+
+- `<script>`, `<iframe>`, `<object>`, `<embed>` are stripped.
+- `href` / `src` with `javascript:` or `vbscript:` schemes are dropped.
+- `data:` URLs are only allowed for images.
+- Unknown tags fall through rehype-sanitize's allowlist.
+
+To further tighten or loosen the policy, pass a custom `sanitizeSchema`
+via `ProcessorOptions`.
+
+## Image Paste Upload
+
+`MarkdownEditor` supports pasting from the clipboard and drag-and-drop
+for images. Provide an uploader that returns the final URL and the
+editor handles everything else — inserting a unique placeholder,
+swapping in the final `![alt](url)` on success, and replacing the
+placeholder with an HTML comment on failure.
+
+```tsx
+import { MarkdownEditor } from '@xcan-cloud/markdown';
+
+async function uploadToCdn(file: File): Promise<string> {
+  const fd = new FormData();
+  fd.append('file', file);
+  const res = await fetch('/api/upload', { method: 'POST', body: fd });
+  if (!res.ok) throw new Error(`upload failed: ${res.status}`);
+  const { url } = await res.json();
+  return url;
+}
+
+<MarkdownEditor
+  onImageUpload={uploadToCdn}
+  onImageUploadSettled={(r) => {
+    if (r.success) toast.success(`Uploaded ${r.file.name}`);
+    else toast.error(`Upload failed: ${String(r.error)}`);
+  }}
+/>
+```
+
+Behavioral guarantees:
+
+- **Unique placeholders.** Each upload gets a random id so concurrent
+  pastes never overwrite each other's insertion point.
+- **Error resilience.** A rejected uploader replaces the placeholder
+  with `<!-- Upload failed: <reason> -->` (not rendered, visible in
+  source).
+- **Multi-file drop.** Dropping multiple images uploads them in
+  parallel at the drop point.
+- **Localization.** Placeholder text uses the active locale
+  (`editor.uploading`, `editor.uploadFailed`).
+- **URL safety.** URLs are percent-encoded for whitespace and `( )`
+  so returned CDN URLs containing spaces or parentheses do not break
+  the `![alt](url)` syntax.
+
+### Paste classification
+
+The editor routes **text vs. file** pastes separately so typing and rich-text paste are never intercepted unnecessarily:
+
+| Clipboard contents | Default behavior |
+| --- | --- |
+| Plain text / HTML only | Browser default (no interception) |
+| Image file(s) only | Upload each image, insert `![alt](url)` |
+| Image + text (e.g. Windows screenshot) | Controlled by `mixedPastePolicy` |
+| Non-image files only (pdf, zip, …) | Browser default (not uploaded) |
+
+```tsx
+<MarkdownEditor
+  onImageUpload={uploadToCdn}
+  mixedPastePolicy="image-and-text"   // upload screenshot AND keep caption text
+  onPaste={(payload) => {
+    if (payload.otherFiles.some(f => f.type === 'application/pdf')) {
+      toast.warn('PDF paste ignored');
+      return true; // handled — skip default flow
+    }
+  }}
+/>
+```
+
+The `classifyClipboard(transfer)` helper that powers this (returns
+`{ images, otherFiles, text, html, uriList, hasImages, hasText, ... }`)
+is exported for custom integrations, alongside `performImageUpload`,
+`createImageUploadLifecycle`, `encodeMarkdownUrl`, `isImageFile`,
+`collectImageFiles`.
 
 ## Customization
 

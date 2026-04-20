@@ -18,6 +18,13 @@ import { closeBrackets } from '@codemirror/autocomplete';
 import { MarkdownRenderer, type MarkdownRendererProps } from './MarkdownRenderer';
 import { ToolbarIcon } from './ToolbarIcon';
 import { useTheme, useLocale, resolveThemeClass } from '../context/MarkdownProvider';
+import {
+  performImageUpload,
+  classifyClipboard,
+  type ImageUploadDocAdapter,
+  type ClipboardPayload,
+  type MixedPastePolicy,
+} from '../utils/image-upload';
 
 // ============================================================
 // Props
@@ -50,6 +57,22 @@ export interface MarkdownEditorProps
   readOnly?: boolean;
   /** 是否支持图片粘贴上传 */
   onImageUpload?: (file: File) => Promise<string>;
+  /** 图片上传完成 / 失败时的副作用（例如 toast 通知）。 */
+  onImageUploadSettled?: (
+    result: { success: true; url: string; file: File } | { success: false; error: unknown; file: File },
+  ) => void;
+  /**
+   * 当剪贴板 / 拖拽同时包含图片和文本时的处理策略：
+   * - `image-first`（默认）：上传图片，丢弃文本（兼容截图行为）。
+   * - `text-first`：插入文本，忽略图片字节（适合粘贴富文本）。
+   * - `image-and-text`：上传图片并保留文本。
+   */
+  mixedPastePolicy?: MixedPastePolicy;
+  /**
+   * 自定义粘贴前钩子。返回 `true` 表示已自行处理，编辑器跳过默认逻辑；
+   * 返回其他值走默认分流（图片 / 文本 / 混合策略）。
+   */
+  onPaste?: (payload: ClipboardPayload, event: ClipboardEvent) => boolean | void;
   /** 自动保存回调 */
   onAutoSave?: (value: string) => void;
   /** 自动保存间隔 (ms) */
@@ -190,6 +213,9 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
     toolbar: toolbarProp,
     readOnly = false,
     onImageUpload,
+    onImageUploadSettled,
+    mixedPastePolicy = 'image-first',
+    onPaste,
     onAutoSave,
     autoSaveInterval = 30000,
     maxLength,
@@ -269,72 +295,92 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
         }
       });
 
-      // 图片粘贴处理
+      // 图片粘贴 / 拖拽上传（见 utils/image-upload.ts）。
+      // 为每个文件生成唯一占位符，避免并发粘贴相互覆盖；
+      // 失败时用 HTML 注释替换占位符，使错误在源码可见但不污染渲染结果。
+      const buildDocAdapter = (view: EditorView): ImageUploadDocAdapter => ({
+        getText: () => view.state.doc.toString(),
+        replaceRange: (from, to, text) => {
+          view.dispatch({ changes: { from, to, insert: text } });
+        },
+        insertAt: (pos, text) => {
+          view.dispatch({ changes: { from: pos, insert: text } });
+        },
+      });
+
+      const runUpload = (file: File, pos: number, view: EditorView) => {
+        if (!onImageUpload) return;
+        void performImageUpload({
+          file,
+          insertPos: pos,
+          upload: onImageUpload,
+          doc: buildDocAdapter(view),
+          messages: {
+            uploading: messages.editor.uploading,
+            uploadFailed: messages.editor.uploadFailed,
+          },
+          onSettled: (r) =>
+            onImageUploadSettled?.(
+              r.success
+                ? { success: true, url: r.url, file }
+                : { success: false, error: r.error, file },
+            ),
+        });
+      };
+
       const pasteHandler = EditorView.domEventHandlers({
         paste: (event, view) => {
+          const payload = classifyClipboard(event.clipboardData);
+
+          // 用户级钩子优先；返回 true 表示已自行处理。
+          if (onPaste && onPaste(payload, event) === true) {
+            event.preventDefault();
+            return true;
+          }
+
+          // 纯文本 / 无图片 → 走浏览器默认粘贴逻辑（不拦截）。
+          if (!payload.hasImages) return false;
+          // 未配置上传回调时，不擅自吞掉图片粘贴事件。
           if (!onImageUpload) return false;
-          const items = event.clipboardData?.items;
-          if (!items) return false;
 
-          for (const item of items) {
-            if (item.type.startsWith('image/')) {
-              event.preventDefault();
-              const file = item.getAsFile();
-              if (file) {
-                const placeholder = '![Uploading...]()\n';
-                const pos = view.state.selection.main.head;
-                view.dispatch({
-                  changes: { from: pos, insert: placeholder },
-                });
+          const policy: MixedPastePolicy = payload.hasText
+            ? mixedPastePolicy
+            : 'image-first';
 
-                onImageUpload(file).then((url) => {
-                  const safeUrl = url.replace(/[()]/g, encodeURIComponent);
-                  const currentDoc = view.state.doc.toString();
-                  const placeholderIndex = currentDoc.indexOf(placeholder);
-                  if (placeholderIndex >= 0) {
-                    view.dispatch({
-                      changes: {
-                        from: placeholderIndex,
-                        to: placeholderIndex + placeholder.length,
-                        insert: `![image](${safeUrl})\n`,
-                      },
-                    });
-                  }
-                });
-              }
-              return true;
+          if (policy === 'text-first') {
+            // 放行文本，丢弃图片字节。
+            return false;
+          }
+
+          event.preventDefault();
+          const pos = view.state.selection.main.head;
+          for (const file of payload.images) runUpload(file, pos, view);
+
+          if (policy === 'image-and-text') {
+            // 在图片占位符之后追加文本内容（优先 plain，再退化到 html 的纯文本）。
+            const text =
+              payload.text ||
+              payload.html.replace(/<[^>]*>/g, '').trim() ||
+              payload.uriList;
+            if (text) {
+              view.dispatch({
+                changes: { from: view.state.selection.main.head, insert: text },
+              });
             }
           }
-          return false;
+          return true;
         },
 
-        // 拖拽图片
         drop: (event, view) => {
           if (!onImageUpload) return false;
-          const files = event.dataTransfer?.files;
-          if (!files) return false;
-
-          for (const file of files) {
-            if (file.type.startsWith('image/')) {
-              event.preventDefault();
-              onImageUpload(file).then((url) => {
-                const safeUrl = url.replace(/[()]/g, encodeURIComponent);
-                const pos =
-                  view.posAtCoords({
-                    x: event.clientX,
-                    y: event.clientY,
-                  }) ?? view.state.selection.main.head;
-                view.dispatch({
-                  changes: {
-                    from: pos,
-                    insert: `![image](${safeUrl})\n`,
-                  },
-                });
-              });
-              return true;
-            }
-          }
-          return false;
+          const payload = classifyClipboard(event.dataTransfer);
+          if (!payload.hasImages) return false;
+          event.preventDefault();
+          const basePos =
+            view.posAtCoords({ x: event.clientX, y: event.clientY }) ??
+            view.state.selection.main.head;
+          for (const file of payload.images) runUpload(file, basePos, view);
+          return true;
         },
       });
 

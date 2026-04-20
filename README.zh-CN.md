@@ -30,6 +30,8 @@
 - [Hooks](#hooks)
 - [组件架构](#组件架构)
 - [子项目](#子项目)
+- [原生 HTML 支持](#原生-html-支持)
+- [剪贴板图片上传](#剪贴板图片上传)
 - [自定义](#自定义)
 - [技术栈](#技术栈)
 - [浏览器支持](#浏览器支持)
@@ -183,7 +185,10 @@ function Page({ markdown }: { markdown: string }) {
 | `minHeight` / `maxHeight` | `string` | — | 编辑区域高度 |
 | `toolbar` | `ToolbarConfig` | 默认集合 | `false` 隐藏，或传入按钮项数组 |
 | `readOnly` | `boolean` | `false` | 只读 |
-| `onImageUpload` | `(file: File) => Promise<string>` | — | 粘贴/拖拽图片时返回可访问 URL |
+| `onImageUpload` | `(file: File) => Promise<string>` | — | 粘贴/拖拽图片时返回可访问 URL，详见 [剪贴板图片上传](#剪贴板图片上传) |
+| `onImageUploadSettled` | `(r: { success: true; url: string; file: File } \| { success: false; error: unknown; file: File }) => void` | — | 每次上传完成或失败时触发（用于 toast / 日志） |
+| `mixedPastePolicy` | `'image-first' \| 'text-first' \| 'image-and-text'` | `'image-first'` | 剪贴板同时包含图片与文本时的策略 |
+| `onPaste` | `(payload: ClipboardPayload, event: ClipboardEvent) => boolean \| void` | — | 自定义粘贴钩子；返回 `true` 表示自行处理，跳过默认逻辑 |
 | `onAutoSave` | `(value: string) => void` | — | 定时自动保存回调 |
 | `autoSaveInterval` | `number` | `30000` | 自动保存间隔（毫秒） |
 | `extensions` | `Extension[]` | `[]` | 额外 CodeMirror 扩展 |
@@ -277,6 +282,7 @@ interface MarkdownRendererProps {
 | `rehypeA11y` | 无障碍 rehype 插件 |
 | `MarkdownWorkerRenderer`, `RenderCache`, `splitHtmlBlocks` | Worker / 分块缓存 |
 | `copyToClipboard` | 剪贴板 |
+| `performImageUpload`、`createImageUploadLifecycle`、`encodeMarkdownUrl`、`sanitizeAltText`、`isImageFile`、`collectImageFiles`、`generateUploadId` | 剪贴板 / 拖拽图片上传工具（详见 [剪贴板图片上传](#剪贴板图片上传)） |
 | `slug`, `resetSlugger` | 标题 slug |
 | `setLocale`, `getLocale`, `t`, `getMessages` | 国际化 API |
 | `ThemeVariant`, `resolveThemeClass` | 皮肤类型与 CSS 类名解析函数 |
@@ -318,6 +324,96 @@ interface MarkdownRendererProps {
 | --- | --- |
 | [`website/`](./website/) | Vite 本地开发与演示 |
 | [`src/styles/`](./src/styles/) | 基础 `markdown-renderer.css` 与主题预设（`themes/github.css`、`themes/angus.css`） |
+
+## 原生 HTML 支持
+
+默认 `allowHtml: true`，Markdown 中的原生 HTML 会端到端透传（解析 → 净化 → 渲染）。
+内置净化 schema 已在所有元素上允许 `class`、`style`、`id`、`data-*`
+属性，因此带尺寸约束的 `<img>` 可以安全通过：
+
+```markdown
+<img src="diagrams/svg/02-lifecycle.svg"
+     alt="请求生命周期"
+     style="max-width:1024px;width:100%;height:auto;" />
+```
+
+同时仍保留以下安全约束：
+
+- 净化阶段会移除 `<script>` / `<iframe>` / `<object>` / `<embed>`；
+- `href` / `src` 中的 `javascript:` / `vbscript:` 协议会被丢弃；
+- `data:` URL 仅允许用于图片；
+- 未列入白名单的标签默认被剥离。
+
+如需进一步收紧或放宽策略，可通过 `ProcessorOptions.sanitizeSchema`
+传入自定义 schema。
+
+## 剪贴板图片上传
+
+`MarkdownEditor` 支持剪贴板粘贴与拖拽插入图片。只需提供返回最终 URL
+的上传回调，编辑器会自动处理插入唯一占位符、成功后替换为
+`![alt](url)`、失败时替换为 HTML 注释等全部细节。
+
+```tsx
+import { MarkdownEditor } from '@xcan-cloud/markdown';
+
+async function uploadToCdn(file: File): Promise<string> {
+  const fd = new FormData();
+  fd.append('file', file);
+  const res = await fetch('/api/upload', { method: 'POST', body: fd });
+  if (!res.ok) throw new Error(`上传失败：${res.status}`);
+  const { url } = await res.json();
+  return url;
+}
+
+<MarkdownEditor
+  onImageUpload={uploadToCdn}
+  onImageUploadSettled={(r) => {
+    if (r.success) toast.success(`已上传 ${r.file.name}`);
+    else toast.error(`上传失败：${String(r.error)}`);
+  }}
+/>
+```
+
+行为保证：
+
+- **占位符唯一。** 每次上传生成随机 id，保证并发粘贴互不覆盖。
+- **失败可见。** 上传 Promise 被 reject 时，占位符会被替换为
+  `<!-- 上传失败: <原因> -->`，不会污染渲染结果但在源码中保留痕迹。
+- **多文件拖拽。** 同时拖入多张图片时会在落点处并行上传。
+- **国际化。** 占位符文本使用当前语言包（`editor.uploading`、
+  `editor.uploadFailed`）。
+- **URL 安全。** URL 中的空白字符与 `(` `)` 会被百分号编码，
+  返回的 CDN URL 即使包含空格或圆括号也不会破坏 Markdown 语法。
+
+### 文本 / 文件分流
+
+编辑器会区分 **文本粘贴** 与 **文件粘贴**，默认不会拦截纯文本输入：
+
+| 剪贴板内容 | 默认行为 |
+| --- | --- |
+| 纯文本 / HTML | 走浏览器默认粘贴 |
+| 仅图片 | 上传图片并插入 `![alt](url)` |
+| 图片 + 文本（如 Windows 截图） | 由 `mixedPastePolicy` 控制 |
+| 仅非图片文件（pdf / zip 等） | 走浏览器默认（不会被上传） |
+
+```tsx
+<MarkdownEditor
+  onImageUpload={uploadToCdn}
+  mixedPastePolicy="image-and-text"   // 既上传截图又保留文字说明
+  onPaste={(payload) => {
+    if (payload.otherFiles.some(f => f.type === 'application/pdf')) {
+      toast.warn('已忽略 PDF 粘贴');
+      return true; // 自行处理，跳过默认流程
+    }
+  }}
+/>
+```
+
+驱动上述分流的 `classifyClipboard(transfer)` 工具（返回
+`{ images, otherFiles, text, html, uriList, hasImages, hasText, ... }`）
+也会从包根路径导出，与 `performImageUpload`、
+`createImageUploadLifecycle`、`encodeMarkdownUrl`、`isImageFile`、
+`collectImageFiles` 一同供自定义封装使用。
 
 ## 自定义
 

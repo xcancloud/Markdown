@@ -104,6 +104,22 @@ export { rehypeA11y } from './core/accessibility';
 // --- 工具函数 ---
 export { copyToClipboard } from './utils/clipboard';
 export { slug, resetSlugger } from './utils/slug';
+export {
+  performImageUpload,
+  createImageUploadLifecycle,
+  encodeMarkdownUrl,
+  sanitizeAltText,
+  isImageFile,
+  collectImageFiles,
+  classifyClipboard,
+  generateUploadId,
+  type ImageUploadMessages,
+  type ImageUploadLifecycle,
+  type ImageUploadDocAdapter,
+  type PerformImageUploadOptions,
+  type ClipboardPayload,
+  type MixedPastePolicy,
+} from './utils/image-upload';
 
 // --- 样式 (需要在消费端 import) ---
 // import '@xcan-cloud/markdown/styles'
