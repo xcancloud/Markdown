@@ -20,6 +20,7 @@ import { ToolbarIcon } from './ToolbarIcon';
 import { useTheme, useLocale, resolveThemeClass } from '../context/MarkdownProvider';
 import {
   performImageUpload,
+  performFileUpload,
   classifyClipboard,
   type ImageUploadDocAdapter,
   type ClipboardPayload,
@@ -61,6 +62,17 @@ export interface MarkdownEditorProps
   onImageUploadSettled?: (
     result: { success: true; url: string; file: File } | { success: false; error: unknown; file: File },
   ) => void;
+  /**
+   * 是否支持任意文件（非图片）上传。配置后工具栏出现「文件」按钮，
+   * 同时支持粘贴 / 拖拽非图片文件，上传成功后插入 `[文件名](url)` 链接。
+   */
+  onFileUpload?: (file: File) => Promise<string>;
+  /** 文件上传完成 / 失败时的副作用（例如 toast 通知）。 */
+  onFileUploadSettled?: (
+    result: { success: true; url: string; file: File } | { success: false; error: unknown; file: File },
+  ) => void;
+  /** 文件选择器的 `accept` 限制（默认不限制）。仅作用于「文件」按钮。 */
+  acceptFileTypes?: string;
   /**
    * 当剪贴板 / 拖拽同时包含图片和文本时的处理策略：
    * - `image-first`（默认）：上传图片，丢弃文本（兼容截图行为）。
@@ -104,6 +116,7 @@ export type ToolbarItem =
   | 'codeblock'
   | 'link'
   | 'image'
+  | 'file'
   | 'table'
   | 'ul'
   | 'ol'
@@ -132,6 +145,7 @@ const DEFAULT_TOOLBAR: ToolbarItem[] = [
   '|',
   'link',
   'image',
+  'file',
   'table',
   '|',
   'ul',
@@ -197,6 +211,19 @@ const TOOLBAR_ACTIONS: Record<string, (view: EditorView) => void> = {
   math: (view) => wrapSelection(view, '$', '$'),
 };
 
+// 文档适配器：把 CodeMirror view 包装成上传驱动所需的最小接口。
+function buildDocAdapter(view: EditorView): ImageUploadDocAdapter {
+  return {
+    getText: () => view.state.doc.toString(),
+    replaceRange: (from, to, text) => {
+      view.dispatch({ changes: { from, to, insert: text } });
+    },
+    insertAt: (pos, text) => {
+      view.dispatch({ changes: { from: pos, insert: text } });
+    },
+  };
+}
+
 // ============================================================
 // 主编辑器组件
 // ============================================================
@@ -214,6 +241,9 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
     readOnly = false,
     onImageUpload,
     onImageUploadSettled,
+    onFileUpload,
+    onFileUploadSettled,
+    acceptFileTypes,
     mixedPastePolicy = 'image-first',
     onPaste,
     onAutoSave,
@@ -234,6 +264,72 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
     const { messages } = useLocale();
     const editorRootRef = useRef<HTMLDivElement>(null);
     const isTruncatingRef = useRef(false);
+
+    // 隐藏的文件选择框 + 最新上传回调引用（供工具栏按钮触发原生文件选择）。
+    const imageInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const onImageUploadRef = useRef(onImageUpload);
+    onImageUploadRef.current = onImageUpload;
+    const onFileUploadRef = useRef(onFileUpload);
+    onFileUploadRef.current = onFileUpload;
+    const uploadMessages = {
+      uploading: messages.editor.uploading,
+      uploadFailed: messages.editor.uploadFailed,
+    };
+
+    // 把选中的图片文件在光标处依次上传。
+    const handleImagePicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const view = viewRef.current;
+      const files = e.target.files;
+      const uploader = onImageUploadRef.current;
+      if (view && files && files.length > 0 && uploader) {
+        const pos = view.state.selection.main.head;
+        for (const file of Array.from(files)) {
+          void performImageUpload({
+            file,
+            insertPos: pos,
+            upload: uploader,
+            doc: buildDocAdapter(view),
+            messages: uploadMessages,
+            onSettled: (r) =>
+              onImageUploadSettled?.(
+                r.success
+                  ? { success: true, url: r.url, file }
+                  : { success: false, error: r.error, file },
+              ),
+          });
+        }
+        view.focus();
+      }
+      e.target.value = '';
+    };
+
+    // 把选中的任意文件在光标处依次上传（插入为链接）。
+    const handleFilePicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const view = viewRef.current;
+      const files = e.target.files;
+      const uploader = onFileUploadRef.current;
+      if (view && files && files.length > 0 && uploader) {
+        const pos = view.state.selection.main.head;
+        for (const file of Array.from(files)) {
+          void performFileUpload({
+            file,
+            insertPos: pos,
+            upload: uploader,
+            doc: buildDocAdapter(view),
+            messages: uploadMessages,
+            onSettled: (r) =>
+              onFileUploadSettled?.(
+                r.success
+                  ? { success: true, url: r.url, file }
+                  : { success: false, error: r.error, file },
+              ),
+          });
+        }
+        view.focus();
+      }
+      e.target.value = '';
+    };
 
     const toolbar = normalizeToolbarConfig(toolbarProp);
     const layoutModes =
@@ -298,15 +394,6 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
       // 图片粘贴 / 拖拽上传（见 utils/image-upload.ts）。
       // 为每个文件生成唯一占位符，避免并发粘贴相互覆盖；
       // 失败时用 HTML 注释替换占位符，使错误在源码可见但不污染渲染结果。
-      const buildDocAdapter = (view: EditorView): ImageUploadDocAdapter => ({
-        getText: () => view.state.doc.toString(),
-        replaceRange: (from, to, text) => {
-          view.dispatch({ changes: { from, to, insert: text } });
-        },
-        insertAt: (pos, text) => {
-          view.dispatch({ changes: { from: pos, insert: text } });
-        },
-      });
 
       const runUpload = (file: File, pos: number, view: EditorView) => {
         if (!onImageUpload) return;
@@ -328,13 +415,64 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
         });
       };
 
+      const runFileUpload = (file: File, pos: number, view: EditorView) => {
+        if (!onFileUpload) return;
+        void performFileUpload({
+          file,
+          insertPos: pos,
+          upload: onFileUpload,
+          doc: buildDocAdapter(view),
+          messages: {
+            uploading: messages.editor.uploading,
+            uploadFailed: messages.editor.uploadFailed,
+          },
+          onSettled: (r) =>
+            onFileUploadSettled?.(
+              r.success
+                ? { success: true, url: r.url, file }
+                : { success: false, error: r.error, file },
+            ),
+        });
+      };
+
       const pasteHandler = EditorView.domEventHandlers({
         paste: (event, view) => {
+          // 只读编辑器不接受任何粘贴写入。
+          if (readOnly) return false;
+
           const payload = classifyClipboard(event.clipboardData);
 
           // 用户级钩子优先；返回 true 表示已自行处理。
           if (onPaste && onPaste(payload, event) === true) {
             event.preventDefault();
+            return true;
+          }
+
+          // 纯非图片文件（且配置了文件上传）→ 作为附件上传。
+          if (!payload.hasImages && payload.otherFiles.length > 0 && onFileUpload) {
+            // 文件 + 文本混合载荷沿用 mixedPastePolicy（与图片同义）。
+            const filePolicy: MixedPastePolicy = payload.hasText
+              ? mixedPastePolicy
+              : 'image-first';
+
+            // text-first：放行文本，丢弃文件字节。
+            if (filePolicy === 'text-first') return false;
+
+            event.preventDefault();
+            const pos = view.state.selection.main.head;
+            for (const file of payload.otherFiles) runFileUpload(file, pos, view);
+
+            if (filePolicy === 'image-and-text') {
+              const text =
+                payload.text ||
+                payload.html.replace(/<[^>]*>/g, '').trim() ||
+                payload.uriList;
+              if (text) {
+                view.dispatch({
+                  changes: { from: view.state.selection.main.head, insert: text },
+                });
+              }
+            }
             return true;
           }
 
@@ -355,6 +493,8 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
           event.preventDefault();
           const pos = view.state.selection.main.head;
           for (const file of payload.images) runUpload(file, pos, view);
+          // 混合载荷中夹带的非图片文件也一并上传。
+          if (onFileUpload) for (const file of payload.otherFiles) runFileUpload(file, pos, view);
 
           if (policy === 'image-and-text') {
             // 在图片占位符之后追加文本内容（优先 plain，再退化到 html 的纯文本）。
@@ -371,15 +511,34 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
           return true;
         },
 
+        // 浏览器要求在 dragover 上 preventDefault 才会派发 drop。
+        // 仅当确有外部文件且配置了对应上传回调时拦截，避免干扰文本拖拽。
+        dragover: (event) => {
+          if (readOnly) return false;
+          const dt = event.dataTransfer;
+          if (!dt) return false;
+          const hasFiles = Array.from(dt.types ?? []).includes('Files');
+          if (hasFiles && (onImageUpload || onFileUpload)) {
+            event.preventDefault();
+            return true;
+          }
+          return false;
+        },
+
         drop: (event, view) => {
-          if (!onImageUpload) return false;
+          // 只读编辑器不接受拖拽写入。
+          if (readOnly) return false;
+
           const payload = classifyClipboard(event.dataTransfer);
-          if (!payload.hasImages) return false;
+          const handleImages = payload.hasImages && !!onImageUpload;
+          const handleFiles = payload.otherFiles.length > 0 && !!onFileUpload;
+          if (!handleImages && !handleFiles) return false;
           event.preventDefault();
           const basePos =
             view.posAtCoords({ x: event.clientX, y: event.clientY }) ??
             view.state.selection.main.head;
-          for (const file of payload.images) runUpload(file, basePos, view);
+          if (handleImages) for (const file of payload.images) runUpload(file, basePos, view);
+          if (handleFiles) for (const file of payload.otherFiles) runFileUpload(file, basePos, view);
           return true;
         },
       });
@@ -462,6 +621,23 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
         return;
       }
 
+      // 图片 / 文件按钮：配置了上传回调时打开原生文件选择框。
+      if (action === 'image' && onImageUploadRef.current) {
+        setHeadingMenuOpen(false);
+        imageInputRef.current?.click();
+        return;
+      }
+      if (action === 'file') {
+        setHeadingMenuOpen(false);
+        if (onFileUploadRef.current) {
+          fileInputRef.current?.click();
+        } else if (view) {
+          insertText(view, '[text](url)');
+          view.focus();
+        }
+        return;
+      }
+
       // Close heading menu on any other action
       setHeadingMenuOpen(false);
 
@@ -519,6 +695,23 @@ export const MarkdownEditor = memo<MarkdownEditorProps>(
         ref={editorRootRef}
         className={`markdown-editor layout-${layout} ${editorThemeClass}${isFullscreen ? ' markdown-editor-fullscreen' : ''}${rendererProps.className ? ` ${rendererProps.className}` : ''}`}
       >
+        {/* 隐藏的原生文件选择框（由工具栏「图片 / 文件」按钮触发） */}
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          style={{ display: 'none' }}
+          onChange={handleImagePicked}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={acceptFileTypes}
+          multiple
+          style={{ display: 'none' }}
+          onChange={handleFilePicked}
+        />
         {/* 工具栏 */}
         {toolbar.show && (
           <div className="markdown-toolbar" role="toolbar">

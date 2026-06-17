@@ -3,10 +3,12 @@ import {
   classifyClipboard,
   collectImageFiles,
   createImageUploadLifecycle,
+  createFileUploadLifecycle,
   encodeMarkdownUrl,
   generateUploadId,
   isImageFile,
   performImageUpload,
+  performFileUpload,
   sanitizeAltText,
   type ImageUploadDocAdapter,
 } from '../../src/utils/image-upload';
@@ -224,6 +226,74 @@ describe('image-upload helpers', () => {
         upload: async () => 'https://cdn.x/foo (v2).png',
       });
       expect(doc.text).toBe('![spec.png](https://cdn.x/foo%20%28v2%29.png)');
+    });
+  });
+
+  describe('createFileUploadLifecycle', () => {
+    it('builds a link placeholder and success/failure replacements', () => {
+      const file = new File([''], 'report.pdf', { type: 'application/pdf' });
+      const lc = createFileUploadLifecycle(file, {
+        uploading: '上传中',
+        uploadFailed: '上传失败',
+      });
+
+      // Link form (no leading '!') so it renders as a clickable link.
+      expect(lc.placeholder.startsWith('[上传中 ')).toBe(true);
+      expect(lc.placeholder.startsWith('!')).toBe(false);
+      expect(lc.placeholder.endsWith(']()')).toBe(true);
+
+      expect(lc.success('https://cdn.x/a b.pdf')).toBe(
+        '[report.pdf](https://cdn.x/a%20b.pdf)',
+      );
+      expect(lc.success('https://cdn.x/a.pdf', 'Spec')).toBe(
+        '[Spec](https://cdn.x/a.pdf)',
+      );
+
+      expect(lc.failure('network error')).toBe(
+        '<!-- 上传失败: network error -->',
+      );
+      expect(lc.failure()).toBe('<!-- 上传失败 -->');
+    });
+  });
+
+  describe('performFileUpload', () => {
+    it('inserts a link placeholder then replaces it on success', async () => {
+      const doc = makeDoc('see ');
+      const file = new File([''], 'doc.zip', { type: 'application/zip' });
+      const onSettled = vi.fn();
+
+      const url = await performFileUpload({
+        file,
+        insertPos: 4,
+        doc,
+        upload: async () => 'https://cdn.x/doc.zip',
+        onSettled,
+      });
+
+      expect(url).toBe('https://cdn.x/doc.zip');
+      expect(doc.text).toBe('see [doc.zip](https://cdn.x/doc.zip)');
+      expect(onSettled).toHaveBeenCalledWith({
+        success: true,
+        url: 'https://cdn.x/doc.zip',
+      });
+    });
+
+    it('replaces placeholder with failure comment on error', async () => {
+      const doc = makeDoc('');
+      const file = new File([''], 'bad.zip', { type: 'application/zip' });
+
+      const url = await performFileUpload({
+        file,
+        insertPos: 0,
+        doc,
+        upload: async () => {
+          throw new Error('boom');
+        },
+        messages: { uploading: 'Uploading', uploadFailed: 'Failed' },
+      });
+
+      expect(url).toBeNull();
+      expect(doc.text).toBe('<!-- Failed: boom -->');
     });
   });
 });

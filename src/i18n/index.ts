@@ -17,6 +17,7 @@ export interface I18nMessages {
     codeblock: string;
     link: string;
     image: string;
+    file: string;
     table: string;
     ul: string;
     ol: string;
@@ -82,6 +83,7 @@ const zhCN: I18nMessages = {
     codeblock: '代码块',
     link: '链接',
     image: '图片',
+    file: '文件',
     table: '表格',
     ul: '无序列表',
     ol: '有序列表',
@@ -143,6 +145,7 @@ const enUS: I18nMessages = {
     codeblock: 'Code Block',
     link: 'Link',
     image: 'Image',
+    file: 'File',
     table: 'Table',
     ul: 'Unordered List',
     ol: 'Ordered List',

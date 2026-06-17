@@ -109,7 +109,9 @@ export { copyToClipboard } from './utils/clipboard';
 export { slug, resetSlugger } from './utils/slug';
 export {
   performImageUpload,
+  performFileUpload,
   createImageUploadLifecycle,
+  createFileUploadLifecycle,
   encodeMarkdownUrl,
   sanitizeAltText,
   isImageFile,

@@ -31,7 +31,7 @@
 - [组件架构](#组件架构)
 - [子项目](#子项目)
 - [原生 HTML 支持](#原生-html-支持)
-- [剪贴板图片上传](#剪贴板图片上传)
+- [文件与图片上传](#文件与图片上传)
 - [自定义](#自定义)
 - [技术栈](#技术栈)
 - [浏览器支持](#浏览器支持)
@@ -46,7 +46,7 @@
 - **数学公式** — 行内与块级 KaTeX（`$...$`、`$$...$$`）
 - **Mermaid** — 流程图、时序图、甘特图、类图等（客户端懒加载渲染）
 - **SVG 预览** — 围栏代码块 ` ```svg ` 或内容为 SVG 的 ` ```xml ` 经净化后**内联预览**（非流式时支持复制 / 下载）
-- **富文本编辑器** — CodeMirror 6、工具栏、分栏 / 标签布局、图片粘贴与拖拽、自动保存、快捷键
+- **富文本编辑器** — CodeMirror 6、工具栏、分栏 / 标签布局、图片与文件粘贴 / 拖拽 / 上传、自动保存、快捷键
 - **代码块体验** — 复制、下载（按语言扩展名；可通过 `file:` 或注释元信息指定文件名）、HTML 沙箱预览
 - **GFM 提示与容器** — `> [!NOTE]` / `> [!WARNING]` 与 `:::tip` / `:::warning` 等指令
 - **目录侧栏** — 自动生成大纲并跟踪当前标题（`MarkdownRenderer`）
@@ -185,8 +185,11 @@ function Page({ markdown }: { markdown: string }) {
 | `minHeight` / `maxHeight` | `string` | — | 编辑区域高度 |
 | `toolbar` | `ToolbarConfig` | 默认集合 | `false` 隐藏，或传入按钮项数组 |
 | `readOnly` | `boolean` | `false` | 只读 |
-| `onImageUpload` | `(file: File) => Promise<string>` | — | 粘贴/拖拽图片时返回可访问 URL，详见 [剪贴板图片上传](#剪贴板图片上传) |
-| `onImageUploadSettled` | `(r: { success: true; url: string; file: File } \| { success: false; error: unknown; file: File }) => void` | — | 每次上传完成或失败时触发（用于 toast / 日志） |
+| `onImageUpload` | `(file: File) => Promise<string>` | — | 粘贴/拖拽/选择图片时返回可访问 URL，详见 [文件与图片上传](#文件与图片上传) |
+| `onImageUploadSettled` | `(r: { success: true; url: string; file: File } \| { success: false; error: unknown; file: File }) => void` | — | 每次图片上传完成或失败时触发（用于 toast / 日志） |
+| `onFileUpload` | `(file: File) => Promise<string>` | — | 粘贴/拖拽/选择**非图片**文件时返回 URL，插入 `[name](url)` 链接，详见 [文件与图片上传](#文件与图片上传) |
+| `onFileUploadSettled` | `(r: { success: true; url: string; file: File } \| { success: false; error: unknown; file: File }) => void` | — | 每次文件上传完成或失败时触发（用于 toast / 日志） |
+| `acceptFileTypes` | `string` | — | 工具栏**文件**按钮原生选择器的 `accept` 过滤（如 `.pdf,.zip`） |
 | `mixedPastePolicy` | `'image-first' \| 'text-first' \| 'image-and-text'` | `'image-first'` | 剪贴板同时包含图片与文本时的策略 |
 | `onPaste` | `(payload: ClipboardPayload, event: ClipboardEvent) => boolean \| void` | — | 自定义粘贴钩子；返回 `true` 表示自行处理，跳过默认逻辑 |
 | `onAutoSave` | `(value: string) => void` | — | 定时自动保存回调 |
@@ -282,7 +285,7 @@ interface MarkdownRendererProps {
 | `rehypeA11y` | 无障碍 rehype 插件 |
 | `MarkdownWorkerRenderer`, `RenderCache`, `splitHtmlBlocks` | Worker / 分块缓存 |
 | `copyToClipboard` | 剪贴板 |
-| `performImageUpload`、`createImageUploadLifecycle`、`encodeMarkdownUrl`、`sanitizeAltText`、`isImageFile`、`collectImageFiles`、`generateUploadId` | 剪贴板 / 拖拽图片上传工具（详见 [剪贴板图片上传](#剪贴板图片上传)） |
+| `performImageUpload`、`performFileUpload`、`createImageUploadLifecycle`、`createFileUploadLifecycle`、`encodeMarkdownUrl`、`sanitizeAltText`、`isImageFile`、`collectImageFiles`、`generateUploadId` | 图片 / 文件粘贴 / 拖拽 / 上传工具（详见 [文件与图片上传](#文件与图片上传)） |
 | `slug`, `resetSlugger` | 标题 slug |
 | `setLocale`, `getLocale`, `t`, `getMessages` | 国际化 API |
 | `ThemeVariant`, `resolveThemeClass` | 皮肤类型与 CSS 类名解析函数 |
@@ -347,11 +350,18 @@ interface MarkdownRendererProps {
 如需进一步收紧或放宽策略，可通过 `ProcessorOptions.sanitizeSchema`
 传入自定义 schema。
 
-## 剪贴板图片上传
+## 文件与图片上传
 
-`MarkdownEditor` 支持剪贴板粘贴与拖拽插入图片。只需提供返回最终 URL
-的上传回调，编辑器会自动处理插入唯一占位符、成功后替换为
-`![alt](url)`、失败时替换为 HTML 注释等全部细节。
+`MarkdownEditor` 支持上传**图片**与**任意文件**（pdf、zip、docx 等），
+共有三个入口：工具栏的**图片** / **文件**按钮（原生文件选择框）、剪贴板
+**粘贴**、以及**拖拽**。只需提供对应的上传回调，编辑器会自动处理插入
+唯一占位符、成功后替换为最终 Markdown、失败时替换为 HTML 注释等全部细节。
+
+- `onImageUpload` 插入图片节点：`![alt](url)`。
+- `onFileUpload` 插入链接：`[name](url)`。
+
+两个回调相互独立：可仅配置 `onImageUpload`、仅配置 `onFileUpload`，或两者
+都配。对应的工具栏按钮（以及粘贴 / 拖拽分流）仅在其回调存在时才会生效。
 
 ```tsx
 import { MarkdownEditor } from '@xcan-cloud/markdown';
@@ -366,8 +376,14 @@ async function uploadToCdn(file: File): Promise<string> {
 }
 
 <MarkdownEditor
-  onImageUpload={uploadToCdn}
+  onImageUpload={uploadToCdn}     // 图片 → ![alt](url)
+  onFileUpload={uploadToCdn}      // 其他文件 → [name](url)
+  acceptFileTypes=".pdf,.zip,.docx"
   onImageUploadSettled={(r) => {
+    if (r.success) toast.success(`已上传 ${r.file.name}`);
+    else toast.error(`上传失败：${String(r.error)}`);
+  }}
+  onFileUploadSettled={(r) => {
     if (r.success) toast.success(`已上传 ${r.file.name}`);
     else toast.error(`上传失败：${String(r.error)}`);
   }}
@@ -376,25 +392,31 @@ async function uploadToCdn(file: File): Promise<string> {
 
 行为保证：
 
-- **占位符唯一。** 每次上传生成随机 id，保证并发粘贴互不覆盖。
+- **工具栏选择器。** **图片**按钮打开 `image/*` 选择框；**文件**按钮打开
+  按 `acceptFileTypes` 过滤的选择框。两者均支持多选。
+- **占位符唯一。** 每次上传生成随机 id，保证并发上传互不覆盖。
 - **失败可见。** 上传 Promise 被 reject 时，占位符会被替换为
   `<!-- 上传失败: <原因> -->`，不会污染渲染结果但在源码中保留痕迹。
-- **多文件拖拽。** 同时拖入多张图片时会在落点处并行上传。
+- **多文件拖拽。** 同时拖入多个文件时会在落点处并行上传。
+- **只读安全。** 设置 `readOnly` 后，粘贴与拖拽不会写入文档（跳过上传）。
 - **国际化。** 占位符文本使用当前语言包（`editor.uploading`、
   `editor.uploadFailed`）。
 - **URL 安全。** URL 中的空白字符与 `(` `)` 会被百分号编码，
-  返回的 CDN URL 即使包含空格或圆括号也不会破坏 Markdown 语法。
+  返回的 CDN URL 即使包含空格或圆括号也不会破坏
+  `![alt](url)` / `[name](url)` 语法。
 
-### 文本 / 文件分流
+### 文本 / 图片 / 文件分流
 
-编辑器会区分 **文本粘贴** 与 **文件粘贴**，默认不会拦截纯文本输入：
+编辑器会区分 **文本**、**图片**、**文件** 三类粘贴，默认不会拦截纯文本输入：
 
-| 剪贴板内容 | 默认行为 |
+| 剪贴板 / 拖拽内容 | 默认行为 |
 | --- | --- |
 | 纯文本 / HTML | 走浏览器默认粘贴 |
-| 仅图片 | 上传图片并插入 `![alt](url)` |
+| 仅图片 | 经 `onImageUpload` 上传，插入 `![alt](url)` |
 | 图片 + 文本（如 Windows 截图） | 由 `mixedPastePolicy` 控制 |
-| 仅非图片文件（pdf / zip 等） | 走浏览器默认（不会被上传） |
+| 仅非图片文件（pdf / zip 等） | 经 `onFileUpload` 上传，插入 `[name](url)` || 非图片文件 + 文本 | 由 `mixedPastePolicy` 控制（与图片 + 文本 同义） |
+> 当对应回调**未提供**时，该类载荷会走浏览器默认行为（例如未配置
+> `onFileUpload` 时，粘贴 PDF 不会被拦截）。
 
 ```tsx
 <MarkdownEditor
@@ -411,9 +433,9 @@ async function uploadToCdn(file: File): Promise<string> {
 
 驱动上述分流的 `classifyClipboard(transfer)` 工具（返回
 `{ images, otherFiles, text, html, uriList, hasImages, hasText, ... }`）
-也会从包根路径导出，与 `performImageUpload`、
-`createImageUploadLifecycle`、`encodeMarkdownUrl`、`isImageFile`、
-`collectImageFiles` 一同供自定义封装使用。
+也会从包根路径导出，与 `performImageUpload`、`performFileUpload`、
+`createImageUploadLifecycle`、`createFileUploadLifecycle`、
+`encodeMarkdownUrl`、`isImageFile`、`collectImageFiles` 一同供自定义封装使用。
 
 ## 自定义
 

@@ -220,6 +220,36 @@ export function createImageUploadLifecycle(
   };
 }
 
+/**
+ * Create a lifecycle object for a single non-image file upload.
+ *
+ * Mirrors {@link createImageUploadLifecycle} but produces a regular Markdown
+ * link (`[name](url)`) instead of an image node, so arbitrary attachments
+ * (.pdf, .zip, .docx, …) render as clickable links.
+ */
+export function createFileUploadLifecycle(
+  file: File,
+  messages?: Partial<ImageUploadMessages>,
+): ImageUploadLifecycle {
+  const uploading = messages?.uploading ?? 'Uploading...';
+  const uploadFailed = messages?.uploadFailed ?? 'Upload failed';
+  const id = generateUploadId();
+  const placeholder = `[${uploading} ${id}]()`;
+
+  return {
+    placeholder,
+    success(url, label) {
+      const text = sanitizeAltText(label ?? file.name ?? 'file');
+      return `[${text}](${encodeMarkdownUrl(url)})`;
+    },
+    failure(message) {
+      const raw = message ?? '';
+      const detail = raw.replace(/-->/g, '--&gt;');
+      return `<!-- ${uploadFailed}${detail ? `: ${detail}` : ''} -->`;
+    },
+  };
+}
+
 // ============================================================
 // Document-agnostic driver
 // ============================================================
@@ -263,8 +293,29 @@ export interface PerformImageUploadOptions {
 export async function performImageUpload(
   opts: PerformImageUploadOptions,
 ): Promise<string | null> {
+  return runUploadDriver(opts, createImageUploadLifecycle);
+}
+
+/**
+ * Orchestrates a single non-image file upload: inserts a link placeholder,
+ * awaits the uploader, and swaps the placeholder for the final
+ * `[name](url)` Markdown. Returns the uploaded URL on success.
+ *
+ * Shares the same concurrency-safe placeholder swap as
+ * {@link performImageUpload}; only the inserted Markdown differs (link vs image).
+ */
+export async function performFileUpload(
+  opts: PerformImageUploadOptions,
+): Promise<string | null> {
+  return runUploadDriver(opts, createFileUploadLifecycle);
+}
+
+async function runUploadDriver(
+  opts: PerformImageUploadOptions,
+  createLifecycle: (file: File, messages?: Partial<ImageUploadMessages>) => ImageUploadLifecycle,
+): Promise<string | null> {
   const { file, insertPos, upload, doc, messages, onSettled } = opts;
-  const lc = createImageUploadLifecycle(file, messages);
+  const lc = createLifecycle(file, messages);
   doc.insertAt(insertPos, lc.placeholder);
 
   const swap = (replacement: string) => {
