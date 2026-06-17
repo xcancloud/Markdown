@@ -1,10 +1,17 @@
-/* GitHub 风格主题 */
+/* ============================================================
+   GitHub 风格主题
+   经典 GitHub Markdown 样式，支持 Light / Dark 双模式。
+
+   【主色继承】
+   --md-link 会优先读取宿主应用定义的 --primary 变量。
+   如果宿主未定义 --primary，则回退到 GitHub 默认蓝色（#0969da）。
+   ============================================================ */
 .markdown-theme-github {
   --md-bg: #ffffff;
   --md-text: #1f2328;
   --md-text-secondary: #656d76;
   --md-border: #d0d7de;
-  --md-link: #0969da;
+  --md-link: var(--primary, #0969da);
   --md-code-bg: #f6f8fa;
   --md-blockquote-border: #d0d7de;
   --md-blockquote-text: #656d76;
@@ -19,7 +26,7 @@
   --md-text: #e6edf3;
   --md-text-secondary: #8b949e;
   --md-border: #30363d;
-  --md-link: #58a6ff;
+  --md-link: var(--primary, #58a6ff);
   --md-code-bg: #161b22;
   --md-blockquote-border: #30363d;
   --md-blockquote-text: #8b949e;

@@ -55,7 +55,7 @@
 - **安全** — rehype-sanitize 配置、URL 处理、面向 XSS 的默认策略
 - **无障碍** — rehype a11y 辅助、面向 ARIA 的输出
 - **流式渲染** — `streaming` 属性适配 SSE / 分块内容（跳过防抖、光标提示）
-- **主题** — 浅色 / 深色 / 跟随系统亮暗模式 + `ThemeVariant` 皮肤体系（Default / Angus / GitHub）；全面采用 CSS 变量
+- **主题** — 浅色 / 深色 / 跟随系统亮暗模式 + `ThemeVariant` 皮肤体系（Default / Angus / GitHub / Claude）；全面采用 CSS 变量
 - **国际化** — 内置 `en-US`、`zh-CN`
 - **双构建** — ESM + CJS、TypeScript 声明、可按需 tree-shaking 的入口
 
@@ -323,7 +323,7 @@ interface MarkdownRendererProps {
 | 路径 | 说明 |
 | --- | --- |
 | [`website/`](./website/) | Vite 本地开发与演示 |
-| [`src/styles/`](./src/styles/) | 基础 `markdown-renderer.css` 与主题预设（`themes/github.css`、`themes/angus.css`） |
+| [`src/styles/`](./src/styles/) | 基础 `markdown-renderer.css` 与主题预设（`themes/github.css`、`themes/angus.css`、`themes/claude.css`） |
 
 ## 原生 HTML 支持
 
@@ -422,7 +422,7 @@ async function uploadToCdn(file: File): Promise<string> {
 主题系统由两个正交维度组成：
 
 - **`defaultTheme`** — 亮暗模式：`'light'`、`'dark'`、`'auto'`（跟随 `prefers-color-scheme`）
-- **`defaultVariant`** — 视觉皮肤：`'default'`、`'angus'`、`'github'`
+- **`defaultVariant`** — 视觉皮肤：`'default'`、`'angus'`、`'github'`、`'claude'`
 
 两者组合后映射为根容器上的一个 CSS 类：
 
@@ -431,6 +431,19 @@ async function uploadToCdn(file: File): Promise<string> {
 | `default` | `markdown-theme-light` | `markdown-theme-dark` |
 | `angus` | `markdown-theme-angus` | `markdown-theme-angus-dark` |
 | `github` | `markdown-theme-github` | `markdown-theme-github-dark` |
+| `claude` | `markdown-theme-claude` | `markdown-theme-claude-dark` |
+
+#### 主色继承
+
+Claude 主题支持从宿主应用继承品牌色。如果宿主在 `:root` 定义了 `--primary`，则 `--md-accent` 和 `--md-link` 自动继承该值；否则回退到 Claude 默认品牌色。
+
+```css
+/* 宿主应用的全局样式 */
+:root {
+  --primary: #3b82f6; /* 蓝色品牌 */
+}
+/* Markdown 链接、强调色会自动变为蓝色 */
+```
 
 #### 默认皮肤（仅切换亮暗）
 

@@ -2,15 +2,19 @@
    Angus 主题 — 默认主题
    现代、清晰、高对比度的阅读体验，灵感来自顶级技术文档排版。
    支持 Light / Dark 双模式，CSS 变量可外部覆盖。
+
+   【主色继承】
+   --md-accent / --md-link 会优先读取宿主应用定义的 --primary 变量。
+   如果宿主未定义 --primary，则回退到 Angus 默认品牌色（#3b82f6）。
    ============================================================ */
 
 /* ============================
    Light Mode
    ============================ */
 .markdown-theme-angus {
-  /* 品牌色 */
-  --md-accent: #3b82f6;
-  --md-accent-hover: #2563eb;
+  /* 品牌色 — 优先继承宿主 --primary，否则回退到 Angus 默认色 */
+  --md-accent: var(--primary, #3b82f6);
+  --md-accent-hover: var(--primary-hover, #2563eb);
   --md-accent-subtle: rgba(59, 130, 246, 0.08);
 
   /* 基础 */
@@ -19,7 +23,7 @@
   --md-text: #1e293b;
   --md-text-secondary: #64748b;
   --md-border: #e2e8f0;
-  --md-link: #3b82f6;
+  --md-link: var(--primary, #3b82f6);
   --md-code-bg: #f8fafc;
   --md-blockquote-border: #cbd5e1;
   --md-blockquote-text: #64748b;
@@ -40,8 +44,9 @@
    Dark Mode
    ============================ */
 .markdown-theme-angus-dark {
-  --md-accent: #60a5fa;
-  --md-accent-hover: #93bbfd;
+  /* 品牌色 — 优先继承宿主 --primary，否则回退到 Angus 暗色默认 */
+  --md-accent: var(--primary, #60a5fa);
+  --md-accent-hover: var(--primary-hover, #93bbfd);
   --md-accent-subtle: rgba(96, 165, 250, 0.1);
 
   --md-bg: #0f172a;
@@ -49,7 +54,7 @@
   --md-text: #e2e8f0;
   --md-text-secondary: #94a3b8;
   --md-border: #1e293b;
-  --md-link: #60a5fa;
+  --md-link: var(--primary, #60a5fa);
   --md-code-bg: #1e293b;
   --md-blockquote-border: #334155;
   --md-blockquote-text: #94a3b8;

@@ -461,7 +461,7 @@
   top: 0;
   overflow-x: hidden;
   padding: var(--md-spacing-sm) var(--md-spacing-md);
-  font-size: 0.8125em;
+  font-size: 0.75em;
 }
 
 .markdown-toc-sidebar .toc-nav {
@@ -498,15 +498,15 @@
 }
 
 .markdown-toc-sidebar .toc-level-2 > a {
-  font-size: 0.9375em;
+  font-size: 0.9em;
 }
 
 .markdown-toc-sidebar .toc-level-3 > a {
-  font-size: 0.875em;
+  font-size: 0.85em;
 }
 
 .markdown-toc-sidebar .toc-level-4 > a {
-  font-size: 0.8125em;
+  font-size: 0.8em;
 }
 
 /* Scrollbar styling for code blocks */

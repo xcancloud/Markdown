@@ -61,6 +61,7 @@ export interface I18nMessages {
   theme: {
     light: string;
     dark: string;
+    claude: string;
     auto: string;
   };
 }
@@ -121,6 +122,7 @@ const zhCN: I18nMessages = {
   theme: {
     light: '浅色',
     dark: '深色',
+    claude: 'Claude',
     auto: '跟随系统',
   },
 };
@@ -181,6 +183,7 @@ const enUS: I18nMessages = {
   theme: {
     light: 'Light',
     dark: 'Dark',
+    claude: 'Claude',
     auto: 'System',
   },
 };

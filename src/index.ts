@@ -73,6 +73,9 @@ export {
   type MarkdownProviderProps,
 } from './context/MarkdownProvider';
 
+// Theme variants list — used for UI variant pickers
+export const THEME_VARIANTS = ['default', 'angus', 'github', 'claude'] as const;
+
 // --- i18n ---
 export {
   type Locale,

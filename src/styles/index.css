@@ -1,3 +1,5 @@
 @import './markdown-renderer.css';
 @import './markdown-editor.css';
 @import './themes/angus.css';
+@import './themes/github.css';
+@import './themes/claude.css';

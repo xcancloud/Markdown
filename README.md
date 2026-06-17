@@ -55,7 +55,7 @@ Production-grade, extensible Markdown **rendering** and **editing** for React �
 - **Security** — rehype-sanitize schema, URL handling, XSS-oriented defaults
 - **Accessibility** — rehype a11y helpers, ARIA-oriented output
 - **Streaming** — `streaming` prop for live SSE/chunked content (debounce bypass, cursor affordance)
-- **Themes** — Light / Dark / Auto mode + `ThemeVariant` skin system (Default / Angus / GitHub); CSS variables throughout
+- **Themes** — Light / Dark / Auto mode + `ThemeVariant` skin system (Default / Angus / GitHub / Claude); CSS variables throughout
 - **i18n** — `en-US` and `zh-CN` built-in
 - **Dual Build** — ESM + CJS, TypeScript declarations, tree-shakeable entry
 
@@ -323,7 +323,7 @@ interface MarkdownRendererProps {
 | Path | Description |
 | --- | --- |
 | [`website/`](./website/) | Vite dev playground / demo app for local development |
-| [`src/styles/`](./src/styles/) | Base `markdown-renderer.css` and theme presets (`themes/github.css`, `themes/angus.css`) |
+| [`src/styles/`](./src/styles/) | Base `markdown-renderer.css` and theme presets (`themes/github.css`, `themes/angus.css`, `themes/claude.css`) |
 
 ## Inline HTML
 
@@ -429,7 +429,7 @@ is exported for custom integrations, alongside `performImageUpload`,
 The theme system has two orthogonal dimensions:
 
 - **`defaultTheme`** — brightness mode: `'light'`, `'dark'`, `'auto'` (follows `prefers-color-scheme`)
-- **`defaultVariant`** — visual skin: `'default'`, `'angus'`, `'github'`
+- **`defaultVariant`** — visual skin: `'default'`, `'angus'`, `'github'`, `'claude'`
 
 The combination maps to a single CSS class on the root container:
 
@@ -438,6 +438,19 @@ The combination maps to a single CSS class on the root container:
 | `default` | `markdown-theme-light` | `markdown-theme-dark` |
 | `angus` | `markdown-theme-angus` | `markdown-theme-angus-dark` |
 | `github` | `markdown-theme-github` | `markdown-theme-github-dark` |
+| `claude` | `markdown-theme-claude` | `markdown-theme-claude-dark` |
+
+#### Primary Color Inheritance
+
+The Claude theme supports inheriting the brand color from the host application. If the host defines `--primary` on `:root`, then `--md-accent` and `--md-link` automatically inherit that value; otherwise they fall back to Claude’s default brand color.
+
+```css
+/* Host application global styles */
+:root {
+  --primary: #3b82f6; /* blue brand */
+}
+/* Markdown links and accent colors automatically become blue */
+```
 
 #### Default skin (light / dark toggle)
 

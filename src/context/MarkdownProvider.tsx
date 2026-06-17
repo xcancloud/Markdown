@@ -11,8 +11,9 @@ export type ThemeMode = 'light' | 'dark' | 'auto';
 // default → markdown-theme-{light|dark}
 // angus   → markdown-theme-angus / markdown-theme-angus-dark
 // github  → markdown-theme-github / markdown-theme-github-dark
+// claude  → markdown-theme-claude / markdown-theme-claude-dark
 // ============================================================
-export type ThemeVariant = 'default' | 'angus' | 'github';
+export type ThemeVariant = 'default' | 'angus' | 'github' | 'claude';
 
 /** 根据皮肤和解析后的亮暗模式生成 CSS 类名 */
 export function resolveThemeClass(

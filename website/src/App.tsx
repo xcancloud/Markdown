@@ -11,6 +11,7 @@ import '../../src/styles/markdown-renderer.css';
 import '../../src/styles/markdown-editor.css';
 import '../../src/styles/themes/angus.css';
 import '../../src/styles/themes/github.css';
+import '../../src/styles/themes/claude.css';
 
 // ============================================================
 // i18n content
@@ -31,7 +32,7 @@ const SITE_TEXT = {
     },
     stats: [
       { value: '30+', label: 'Supported Languages' },
-      { value: '2', label: 'Built-in Themes' },
+      { value: '3', label: 'Built-in Themes' },
       { value: '2', label: 'Locale Languages' },
       { value: 'ESM + CJS', label: 'Dual Output Formats' },
     ],
@@ -102,7 +103,7 @@ const SITE_TEXT = {
     },
     stats: [
       { value: '30+', label: '支持语言' },
-      { value: '2', label: '内置主题' },
+      { value: '3', label: '内置主题' },
       { value: '2', label: '国际化语言' },
       { value: 'ESM + CJS', label: '双格式输出' },
     ],
@@ -499,6 +500,7 @@ const STYLE_THEMES: { value: ThemeVariant; label: { en: string; zh: string } }[]
   { value: 'default', label: { en: 'Default', zh: '默认' } },
   { value: 'angus', label: { en: 'Angus', zh: 'Angus' } },
   { value: 'github', label: { en: 'GitHub', zh: 'GitHub' } },
+  { value: 'claude', label: { en: 'Claude', zh: 'Claude' } },
 ];
 
 const App: React.FC = () => {
