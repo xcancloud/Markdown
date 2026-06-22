@@ -189,7 +189,7 @@
   padding: 0.15em 0.4em;
   font-size: 0.875em;
   background: var(--md-code-bg);
-  border: 1px solid var(--md-border);
+  border: var(--md-border-width) solid var(--md-border);
   border-radius: 4px;
   font-family: var(--md-font-mono);
   font-weight: 450;
@@ -207,7 +207,7 @@
   margin: 1.5em 0;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid var(--md-border);
+  border: var(--md-border-width) solid var(--md-border);
   background-color: var(--md-code-bg);
 }
 
@@ -246,7 +246,7 @@
   font-size: 0.8125em;
   line-height: 1.7;
   background-color: var(--md-code-bg);
-  border: 1px solid var(--md-border);
+  border: var(--md-border-width) solid var(--md-border);
   border-radius: 8px;
   font-family: var(--md-font-mono);
 }
@@ -260,7 +260,7 @@
   margin: 1.5em 0;
   padding: 0.25em 1.25em;
   color: var(--md-blockquote-text);
-  border-left: 3px solid var(--md-blockquote-border);
+  border-left: var(--md-border-width-emphasis) solid var(--md-blockquote-border);
   background: transparent;
 }
 
@@ -311,14 +311,14 @@
   margin: 1.5em 0;
   display: block;
   overflow-x: auto;
-  border: 1px solid var(--md-table-border);
+  border: var(--md-border-width) solid var(--md-table-border);
   border-radius: 8px;
 }
 
 .markdown-theme-claude .markdown-body th,
 .markdown-theme-claude-dark .markdown-body th {
   padding: 10px 16px;
-  border: 1px solid var(--md-table-border);
+  border: var(--md-border-width) solid var(--md-table-border);
   font-weight: 600;
   font-size: 0.875em;
   color: var(--md-text-secondary);
@@ -329,7 +329,7 @@
 .markdown-theme-claude .markdown-body td,
 .markdown-theme-claude-dark .markdown-body td {
   padding: 10px 16px;
-  border: 1px solid var(--md-table-border);
+  border: var(--md-border-width) solid var(--md-table-border);
 }
 
 .markdown-theme-claude .markdown-body tr:nth-child(2n),
@@ -360,7 +360,7 @@
 .markdown-theme-claude .markdown-body hr,
 .markdown-theme-claude-dark .markdown-body hr {
   border: 0;
-  border-top: 1px solid var(--md-border);
+  border-top: var(--md-border-width) solid var(--md-border);
   margin: 2.5em 0;
 }
 
@@ -382,7 +382,7 @@
   padding: 1em 1.25em;
   margin: 1.5em 0;
   border-radius: 8px;
-  border-left: 4px solid;
+  border-left: var(--md-border-width-emphasis) solid;
   font-size: 0.9375em;
 }
 
@@ -429,7 +429,7 @@
   padding: 1em 1.25em;
   margin: 1.5em 0;
   border-radius: 8px;
-  border-left: 4px solid var(--md-border);
+  border-left: var(--md-border-width-emphasis) solid var(--md-border);
   background: var(--md-code-bg);
 }
 
@@ -468,7 +468,7 @@
   padding: 1em;
   background: var(--md-code-bg);
   border-radius: 8px;
-  border: 1px solid var(--md-border);
+  border: var(--md-border-width) solid var(--md-border);
   overflow-x: auto;
 }
 
@@ -488,7 +488,7 @@
 .markdown-theme-claude .markdown-body .footnotes,
 .markdown-theme-claude-dark .markdown-body .footnotes {
   font-size: 0.875em;
-  border-top: 1px solid var(--md-border);
+  border-top: var(--md-border-width) solid var(--md-border);
   margin-top: 2em;
   padding-top: 1em;
   color: var(--md-text-secondary);
@@ -506,7 +506,7 @@
 
 .markdown-theme-claude .markdown-toc-sidebar .toc-nav,
 .markdown-theme-claude-dark .markdown-toc-sidebar .toc-nav {
-  border-left: 1px solid var(--md-border);
+  border-left: var(--md-border-width) solid var(--md-border);
 }
 
 .markdown-theme-claude .markdown-toc-sidebar .toc-item a,
@@ -537,7 +537,7 @@
 .markdown-theme-claude-dark .markdown-body .code-block .code-block-actions button {
   padding: 4px 10px;
   font-size: 11px;
-  border: 1px solid var(--md-border);
+  border: var(--md-border-width) solid var(--md-border);
   border-radius: 6px;
   background: var(--md-bg);
   color: var(--md-text-secondary);
@@ -557,7 +557,7 @@
    ============================ */
 .markdown-theme-claude .markdown-body .svg-preview-container,
 .markdown-theme-claude-dark .markdown-body .svg-preview-container {
-  border: 1px solid var(--md-border);
+  border: var(--md-border-width) solid var(--md-border);
   border-radius: 8px;
   overflow: auto;
 }

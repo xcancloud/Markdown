@@ -27,8 +27,19 @@
   /* 圆角 */
   --md-radius: 6px;
 
+  /* 边框粗细：发丝线优先，不支持 0.5px 时回退 1px */
+  --md-border-width: 1px;
+  --md-border-width-emphasis: 1.5px;
+
   background-color: var(--md-bg, #ffffff);
   color: var(--md-text, #1f2328);
+}
+
+@supports (border-width: 0.5px) {
+  .markdown-renderer {
+    --md-border-width: 0.5px;
+    --md-border-width-emphasis: 1px;
+  }
 }
 
 /* Light 主题 */
@@ -115,12 +126,12 @@
 
 .markdown-body h1 {
   font-size: 2em;
-  border-bottom: 1px solid var(--md-border);
+  border-bottom: var(--md-border-width) solid var(--md-border);
   padding-bottom: 0.3em;
 }
 .markdown-body h2 {
   font-size: 1.5em;
-  border-bottom: 1px solid var(--md-border);
+  border-bottom: var(--md-border-width) solid var(--md-border);
   padding-bottom: 0.3em;
 }
 .markdown-body h3 {
@@ -168,7 +179,7 @@
   margin: var(--md-spacing-md) 0;
   border-radius: var(--md-radius);
   overflow: hidden;
-  border: 1px solid rgba(208, 215, 222, 0.4);
+  border: var(--md-border-width) solid rgba(208, 215, 222, 0.4);
   background-color: var(--md-code-bg);
 }
 
@@ -188,7 +199,7 @@
   font-size: 85%;
   line-height: 1.45;
   background-color: var(--md-code-bg);
-  border: 1px solid rgba(208, 215, 222, 0.4);
+  border: var(--md-border-width) solid rgba(208, 215, 222, 0.4);
   border-radius: var(--md-radius);
   font-family: var(--md-font-mono);
 }
@@ -227,7 +238,7 @@
 .markdown-body th,
 .markdown-body td {
   padding: 6px 13px;
-  border: 1px solid var(--md-table-border);
+  border: var(--md-border-width) solid var(--md-table-border);
 }
 
 .markdown-body tr:nth-child(2n) {
@@ -257,7 +268,7 @@
 /* Horizontal Rule */
 .markdown-body hr {
   border: 0;
-  border-top: 1px solid var(--md-border);
+  border-top: var(--md-border-width) solid var(--md-border);
   margin: var(--md-spacing-lg) 0;
 }
 
@@ -278,7 +289,7 @@
   padding: var(--md-spacing-md);
   margin: var(--md-spacing-md) 0;
   border-radius: var(--md-radius);
-  border-left: 4px solid;
+  border-left: var(--md-border-width-emphasis) solid;
 }
 
 .markdown-body .markdown-alert-note {
@@ -307,7 +318,7 @@
   padding: var(--md-spacing-md);
   margin: var(--md-spacing-md) 0;
   border-radius: var(--md-radius);
-  border-left: 4px solid var(--md-border);
+  border-left: var(--md-border-width-emphasis) solid var(--md-border);
   background: var(--md-code-bg);
 }
 
@@ -404,7 +415,7 @@
 /* Footnotes */
 .markdown-body .footnotes {
   font-size: 0.875em;
-  border-top: 1px solid var(--md-border);
+  border-top: var(--md-border-width) solid var(--md-border);
   margin-top: var(--md-spacing-lg);
   padding-top: var(--md-spacing-md);
 }
@@ -465,7 +476,7 @@
 }
 
 .markdown-toc-sidebar .toc-nav {
-  border-left: 2px solid var(--md-border);
+  border-left: var(--md-border-width) solid var(--md-border);
 }
 
 .markdown-toc-sidebar .toc-list {
@@ -622,7 +633,7 @@
 .markdown-body .svg-preview-container .svg-preview-actions button {
   padding: 4px 12px;
   font-size: 12px;
-  border: 1px solid var(--md-border);
+  border: var(--md-border-width) solid var(--md-border);
   border-radius: var(--md-radius);
   background: var(--md-bg);
   color: var(--md-text-secondary);
@@ -689,7 +700,7 @@
     flex: none;
     position: static;
     max-height: none;
-    border-bottom: 1px solid var(--md-border);
+    border-bottom: var(--md-border-width) solid var(--md-border);
     padding-bottom: var(--md-spacing-md);
   }
 
