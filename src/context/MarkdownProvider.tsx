@@ -41,7 +41,7 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue>({
   theme: 'auto',
   setTheme: () => {},
-  variant: 'angus',
+  variant: 'claude',
   setVariant: () => {},
   resolvedMode: 'light',
 });
@@ -81,7 +81,7 @@ export function useLocale() {
 export interface MarkdownProviderProps {
   children: React.ReactNode;
   defaultTheme?: ThemeMode;
-  /** 皮肤，默认 'angus' */
+  /** 皮肤，默认 'claude' */
   defaultVariant?: ThemeVariant;
   defaultLocale?: Locale;
 }
@@ -96,7 +96,7 @@ function getSystemTheme(): 'light' | 'dark' {
 export const MarkdownProvider: React.FC<MarkdownProviderProps> = ({
   children,
   defaultTheme = 'auto',
-  defaultVariant = 'angus',
+  defaultVariant = 'claude',
   defaultLocale = 'en-US',
 }) => {
   const [theme, setThemeState] = useState<ThemeMode>(defaultTheme);

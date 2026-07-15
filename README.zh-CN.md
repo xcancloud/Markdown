@@ -176,8 +176,8 @@ import '@xcan-cloud/markdown/styles';
 
 function App() {
   return (
-    // defaultVariant="angus" — Angus 皮肤 CSS 已内置在 @xcan-cloud/markdown/styles 中，无需额外引入
-    <MarkdownProvider defaultTheme="auto" defaultVariant="angus" defaultLocale="zh-CN">
+    // defaultVariant="claude" — Claude 皮肤 CSS 已内置在 @xcan-cloud/markdown/styles 中
+    <MarkdownProvider defaultTheme="auto" defaultVariant="claude" defaultLocale="zh-CN">
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <ThemeSwitcher />   {/* 切换 light / dark / auto */}
         <LocaleSwitcher />
@@ -277,7 +277,7 @@ function Page({ markdown }: { markdown: string }) {
 | --- | --- | --- | --- |
 | `children` | `ReactNode` | — | 子树 |
 | `defaultTheme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | 亮暗模式 |
-| `defaultVariant` | `'default' \| 'angus' \| 'github'` | `'angus'` | 视觉皮肤 |
+| `defaultVariant` | `'default' \| 'angus' \| 'github' \| 'claude'` | `'claude'` | 视觉皮肤 |
 | `defaultLocale` | `'en-US' \| 'zh-CN'` | `'en-US'` | 初始语言 |
 
 ### `<ThemeSwitcher />` / `<LocaleSwitcher />`

@@ -176,8 +176,8 @@ import '@xcan-cloud/markdown/styles';
 
 function App() {
   return (
-    // defaultVariant="angus" — angus.css is already bundled inside @xcan-cloud/markdown/styles
-    <MarkdownProvider defaultTheme="auto" defaultVariant="angus" defaultLocale="en-US">
+    // defaultVariant="claude" — Claude skin CSS is bundled in @xcan-cloud/markdown/styles
+    <MarkdownProvider defaultTheme="auto" defaultVariant="claude" defaultLocale="en-US">
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <ThemeSwitcher />   {/* switches light / dark / auto */}
         <LocaleSwitcher />
@@ -277,7 +277,7 @@ Lightweight viewer using `useMarkdown` (no CodeMirror).
 | --- | --- | --- | --- |
 | `children` | `ReactNode` | — | App subtree |
 | `defaultTheme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | Light/dark mode |
-| `defaultVariant` | `'default' \| 'angus' \| 'github'` | `'angus'` | Visual skin |
+| `defaultVariant` | `'default' \| 'angus' \| 'github' \| 'claude'` | `'claude'` | Visual skin |
 | `defaultLocale` | `'en-US' \| 'zh-CN'` | `'en-US'` | Initial locale |
 
 ### `<ThemeSwitcher />` / `<LocaleSwitcher />`
