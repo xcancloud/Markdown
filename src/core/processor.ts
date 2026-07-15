@@ -127,8 +127,9 @@ export function createProcessor(options: ProcessorOptions = {}) {
     .use(rehypeAutolinkHeadings, { behavior: 'wrap' });
 
   // 代码高亮（Shiki 输出 raw 节点，需在 sanitize 之后运行，异步插件）
+  // mermaid 传给高亮插件：false 时不改写 ```mermaid fence，避免无效后处理
   if (highlight) {
-    processor = processor.use(rehypeHighlightCode, { theme: codeTheme });
+    processor = processor.use(rehypeHighlightCode, { theme: codeTheme, mermaid });
   }
   processor = processor.use(rehypeA11y);
 
@@ -207,6 +208,72 @@ function createSanitizeSchema(opts: { math?: boolean; mermaid?: boolean }) {
   ];
 
   return schema;
+}
+
+// ============================================================
+// 渲染路径辅助（不改变 createProcessor 默认值）
+// ============================================================
+
+/**
+ * Resolve processor options for a render pass.
+ * While `streaming` is true, forces `highlight: false` so Shiki (and Mermaid / SVG
+ * fence transforms that live in the highlight plugin) are skipped for cheap
+ * incremental updates. On stream end the caller should re-render with
+ * `streaming: false` to restore full fidelity.
+ *
+ * Does not mutate the input object. Does not change {@link createProcessor} defaults.
+ */
+export function resolveProcessorOptionsForRender(
+  options: ProcessorOptions | undefined,
+  streaming: boolean,
+): ProcessorOptions {
+  if (!streaming) return { ...(options ?? {}) };
+  return {
+    ...(options ?? {}),
+    highlight: false,
+  };
+}
+
+/**
+ * Stable cache partition key for processor options that affect HTML output.
+ * Returns `null` when options include non-serializable custom plugins / schema —
+ * callers should skip caching in that case.
+ */
+export function processorOptionsCacheKey(
+  options: ProcessorOptions | undefined,
+): string | null {
+  if (!options) return '';
+  if (
+    options.remarkPlugins?.length ||
+    options.rehypePlugins?.length ||
+    options.sanitizeSchema
+  ) {
+    return null;
+  }
+  const {
+    gfm,
+    math,
+    mermaid,
+    frontmatter,
+    emoji,
+    toc,
+    sanitize,
+    codeTheme,
+    highlight,
+    allowHtml,
+  } = options;
+  return JSON.stringify({
+    gfm,
+    math,
+    mermaid,
+    frontmatter,
+    emoji,
+    toc,
+    sanitize,
+    codeTheme,
+    highlight,
+    allowHtml,
+  });
 }
 
 // ============================================================

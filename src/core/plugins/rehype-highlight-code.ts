@@ -8,11 +8,10 @@ import type { Root, Element } from 'hast';
 import type { Plugin } from 'unified';
 import { looksLikeSvgMarkup } from '../utils/svg-sanitize';
 
-// 静态导入主题
+// 静态导入主题 + 核心语言（聊天 / 文档高频）
 import themGithubDark from '@shikijs/themes/github-dark';
 import themGithubLight from '@shikijs/themes/github-light';
 
-// 静态导入核心语言
 import langJavascript from '@shikijs/langs/javascript';
 import langTypescript from '@shikijs/langs/typescript';
 import langHtml from '@shikijs/langs/html';
@@ -21,28 +20,17 @@ import langJson from '@shikijs/langs/json';
 import langBash from '@shikijs/langs/bash';
 import langPython from '@shikijs/langs/python';
 
-// 按需导入的额外语言注册表
-import langJava from '@shikijs/langs/java';
-import langC from '@shikijs/langs/c';
-import langCpp from '@shikijs/langs/cpp';
-import langGo from '@shikijs/langs/go';
-import langRust from '@shikijs/langs/rust';
-import langRuby from '@shikijs/langs/ruby';
-import langKotlin from '@shikijs/langs/kotlin';
-import langScss from '@shikijs/langs/scss';
-import langYaml from '@shikijs/langs/yaml';
-import langXml from '@shikijs/langs/xml';
-import langSql from '@shikijs/langs/sql';
-import langShell from '@shikijs/langs/shellscript';
-import langDockerfile from '@shikijs/langs/dockerfile';
-import langGraphql from '@shikijs/langs/graphql';
-
 interface HighlightOptions {
   theme?: string;
   /** 是否显示行号 */
   lineNumbers?: boolean;
   /** 高亮特定行 */
   highlightLines?: boolean;
+  /**
+   * When false, ```mermaid fences stay as normal code blocks (no mermaid-container).
+   * Default true for backward compatibility.
+   */
+  mermaid?: boolean;
 }
 
 const THEME_MAP: Record<string, any> = {
@@ -51,32 +39,56 @@ const THEME_MAP: Record<string, any> = {
 };
 
 const CORE_LANGS = [langJavascript, langTypescript, langHtml, langCss, langJson, langBash, langPython];
-const CORE_LANG_IDS = ['javascript', 'typescript', 'html', 'css', 'json', 'bash', 'python'];
+const CORE_LANG_IDS = [
+  'javascript',
+  'typescript',
+  'html',
+  'css',
+  'json',
+  'bash',
+  'python',
+];
 
-// 额外支持的语言（静态导入，按需加载到 highlighter）
-const EXTRA_LANG_MAP: Record<string, any> = {
-  java: langJava,
-  c: langC,
-  cpp: langCpp,
-  go: langGo,
-  rust: langRust,
-  ruby: langRuby,
-  kotlin: langKotlin,
-  scss: langScss,
-  yaml: langYaml,
-  yml: langYaml,
-  xml: langXml,
-  sql: langSql,
-  shell: langShell,
-  sh: langBash,
-  zsh: langBash,
-  dockerfile: langDockerfile,
-  docker: langDockerfile,
-  graphql: langGraphql,
+/** Map common fence aliases → Shiki language ids. */
+const LANG_ALIASES: Record<string, string> = {
+  js: 'javascript',
+  jsx: 'javascript',
+  ts: 'typescript',
+  tsx: 'typescript',
+  py: 'python',
+  sh: 'bash',
+  zsh: 'bash',
+  shell: 'bash',
+  yml: 'yaml',
+  docker: 'dockerfile',
+};
+
+/**
+ * Extra languages loaded on demand via dynamic import (kept out of the main chunk).
+ * Values are loaders returning the default grammar export.
+ */
+const EXTRA_LANG_LOADERS: Record<string, () => Promise<any>> = {
+  java: () => import('@shikijs/langs/java').then((m) => m.default),
+  c: () => import('@shikijs/langs/c').then((m) => m.default),
+  cpp: () => import('@shikijs/langs/cpp').then((m) => m.default),
+  go: () => import('@shikijs/langs/go').then((m) => m.default),
+  rust: () => import('@shikijs/langs/rust').then((m) => m.default),
+  ruby: () => import('@shikijs/langs/ruby').then((m) => m.default),
+  kotlin: () => import('@shikijs/langs/kotlin').then((m) => m.default),
+  scss: () => import('@shikijs/langs/scss').then((m) => m.default),
+  yaml: () => import('@shikijs/langs/yaml').then((m) => m.default),
+  xml: () => import('@shikijs/langs/xml').then((m) => m.default),
+  sql: () => import('@shikijs/langs/sql').then((m) => m.default),
+  dockerfile: () => import('@shikijs/langs/dockerfile').then((m) => m.default),
+  graphql: () => import('@shikijs/langs/graphql').then((m) => m.default),
 };
 
 let highlighterPromise: Promise<HighlighterCore> | null = null;
 const loadedLangs = new Set<string>(CORE_LANG_IDS);
+
+function resolveLangId(lang: string): string {
+  return LANG_ALIASES[lang] ?? lang;
+}
 
 function getHighlighter(theme: string): Promise<HighlighterCore> {
   if (!highlighterPromise) {
@@ -91,15 +103,17 @@ function getHighlighter(theme: string): Promise<HighlighterCore> {
 }
 
 /**
- * 按需加载语言
+ * 按需加载语言（核心语言已在 highlighter 初始化时注册）
  */
 async function ensureLanguage(highlighter: HighlighterCore, lang: string): Promise<boolean> {
-  if (loadedLangs.has(lang)) return true;
-  const grammar = EXTRA_LANG_MAP[lang];
-  if (!grammar) return false;
+  const id = resolveLangId(lang);
+  if (loadedLangs.has(id)) return true;
+  const loader = EXTRA_LANG_LOADERS[id];
+  if (!loader) return false;
   try {
+    const grammar = await loader();
     await highlighter.loadLanguage(grammar);
-    loadedLangs.add(lang);
+    loadedLangs.add(id);
     return true;
   } catch {
     return false;
@@ -109,7 +123,11 @@ async function ensureLanguage(highlighter: HighlighterCore, lang: string): Promi
 const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
   options = {},
 ) => {
-  const { theme = 'github-dark', lineNumbers = false } = options;
+  const {
+    theme = 'github-dark',
+    lineNumbers = false,
+    mermaid: enableMermaid = true,
+  } = options;
 
   return async (tree: Root) => {
     const highlighter = await getHighlighter(theme);
@@ -162,8 +180,8 @@ const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
         continue;
       }
 
-      // Mermaid 代码块跳过高亮，交给 Mermaid 渲染器
-      if (lang === 'mermaid') {
+      // Mermaid 代码块跳过高亮，交给 Mermaid 渲染器（可被 options.mermaid=false 关闭）
+      if (lang === 'mermaid' && enableMermaid) {
         node.properties = {
           ...node.properties,
           className: ['mermaid-container'],
@@ -174,9 +192,9 @@ const rehypeHighlightCode: Plugin<[HighlightOptions?], Root> = (
       }
 
       try {
-        // 按需加载该语言
-        const loaded = await ensureLanguage(highlighter, lang);
-        const effectiveLang = loaded ? lang : 'text';
+        const resolved = resolveLangId(lang);
+        const loaded = await ensureLanguage(highlighter, resolved);
+        const effectiveLang = loaded ? resolved : 'text';
 
         const html = highlighter.codeToHtml(code, {
           lang: effectiveLang,

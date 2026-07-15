@@ -30,7 +30,24 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
+    "./viewer": {
+      "types": "./dist/viewer.d.ts",
+      "import": "./dist/viewer.mjs",
+      "require": "./dist/viewer.cjs"
+    },
+    "./renderer": {
+      "types": "./dist/renderer.d.ts",
+      "import": "./dist/renderer.mjs",
+      "require": "./dist/renderer.cjs"
+    },
+    "./editor": {
+      "types": "./dist/editor.d.ts",
+      "import": "./dist/editor.mjs",
+      "require": "./dist/editor.cjs"
+    },
     "./styles": "./dist/styles/index.css",
+    "./styles/renderer": "./dist/styles/renderer.css",
+    "./styles/editor": "./dist/styles/editor.css",
     "./themes/*": "./dist/styles/themes/*"
   },
   "files": [

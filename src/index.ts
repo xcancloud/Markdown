@@ -8,8 +8,18 @@ export {
   renderMarkdown,
   renderMarkdownSync,
   parseToAst,
+  resolveProcessorOptionsForRender,
+  processorOptionsCacheKey,
   type ProcessorOptions,
 } from './core/processor';
+
+export {
+  CHAT_PROCESSOR_OPTIONS,
+  STREAMING_PROCESSOR_OPTIONS,
+  CHAT_RENDERER_DEFAULTS,
+  createChatProcessor,
+  createStreamingProcessor,
+} from './core/presets';
 
 // --- 插件 ---
 export { default as rehypeHighlightCode } from './core/plugins/rehype-highlight-code';
@@ -39,6 +49,7 @@ export {
 export {
   MarkdownRenderer,
   type MarkdownRendererProps,
+  type CodeBlockInfo,
 } from './components/MarkdownRenderer';
 export {
   MarkdownEditor,
@@ -95,7 +106,9 @@ export { useScrollSync } from './hooks/useScrollSync';
 export {
   MarkdownWorkerRenderer,
   RenderCache,
+  sharedRenderCache,
   splitHtmlBlocks,
+  type RenderCacheEntry,
 } from './core/performance';
 
 // --- 安全工具 ---

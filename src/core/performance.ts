@@ -3,6 +3,7 @@
 // ============================================================
 // 使用 ?worker&inline 内联 worker，避免库被消费时构建无法解析独立的 worker 文件
 import RendererWorker from './worker-renderer.ts?worker&inline';
+import type { TocItem } from './plugins/toc-generator';
 
 export class MarkdownWorkerRenderer {
   private worker: Worker;
@@ -58,8 +59,15 @@ export function splitHtmlBlocks(html: string): string[] {
 // ============================================================
 // 3. 缓存策略
 // ============================================================
+
+/** Cached render result (HTML + TOC extracted in the same pipeline pass). */
+export interface RenderCacheEntry {
+  html: string;
+  toc: TocItem[];
+}
+
 export class RenderCache {
-  private cache = new Map<string, { html: string; timestamp: number }>();
+  private cache = new Map<string, { entry: RenderCacheEntry; timestamp: number }>();
   private maxSize: number;
   private ttl: number;
 
@@ -82,26 +90,55 @@ export class RenderCache {
     return (h1 >>> 0).toString(36) + '-' + (h2 >>> 0).toString(36) + '-' + source.length;
   }
 
-  get(source: string): string | null {
-    const key = this.hash(source);
-    const entry = this.cache.get(key);
-    if (!entry) return null;
-    if (Date.now() - entry.timestamp > this.ttl) {
+  private makeKey(source: string, optionsKey = ''): string {
+    return `${this.hash(source)}::${optionsKey}`;
+  }
+
+  /**
+   * Returns cached HTML only (backward-compatible).
+   * Pass `optionsKey` (from {@link processorOptionsCacheKey}) to partition by processor options.
+   */
+  get(source: string, optionsKey = ''): string | null {
+    return this.getEntry(source, optionsKey)?.html ?? null;
+  }
+
+  /** Returns full cached entry including TOC, or null on miss / expiry. */
+  getEntry(source: string, optionsKey = ''): RenderCacheEntry | null {
+    const key = this.makeKey(source, optionsKey);
+    const slot = this.cache.get(key);
+    if (!slot) return null;
+    if (Date.now() - slot.timestamp > this.ttl) {
       this.cache.delete(key);
       return null;
     }
-    return entry.html;
+    return slot.entry;
   }
 
-  set(source: string, html: string): void {
+  /**
+   * Store HTML (and optional TOC). Existing callers that only pass `(source, html)` keep working.
+   */
+  set(source: string, html: string, optionsKey = '', toc: TocItem[] = []): void {
+    this.setEntry(source, optionsKey, { html, toc });
+  }
+
+  setEntry(source: string, optionsKey: string, entry: RenderCacheEntry): void {
     if (this.cache.size >= this.maxSize) {
       const firstKey = this.cache.keys().next().value;
       if (firstKey !== undefined) this.cache.delete(firstKey);
     }
-    this.cache.set(this.hash(source), { html, timestamp: Date.now() });
+    this.cache.set(this.makeKey(source, optionsKey), {
+      entry: { html: entry.html, toc: entry.toc },
+      timestamp: Date.now(),
+    });
   }
 
   clear(): void {
     this.cache.clear();
   }
 }
+
+/**
+ * Shared LRU used by {@link MarkdownRenderer} and {@link useMarkdown}.
+ * Keyed by source hash + processor options so different option sets do not collide.
+ */
+export const sharedRenderCache = new RenderCache(200, 120_000);

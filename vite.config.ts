@@ -8,15 +8,24 @@ export default defineConfig({
     react(),
     dts({
       insertTypesEntry: true,
-      rollupTypes: true,
+      // Multi-entry + rollupTypes can duplicate shared types; emit per-file .d.ts instead.
+      rollupTypes: false,
+      include: ['src'],
+      exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     }),
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        viewer: resolve(__dirname, 'src/viewer.ts'),
+        renderer: resolve(__dirname, 'src/renderer.ts'),
+        editor: resolve(__dirname, 'src/editor.ts'),
+      },
       name: 'MarkdownComponent',
       formats: ['es', 'cjs'],
-      fileName: (format) => `index.${format === 'es' ? 'mjs' : 'cjs'}`,
+      fileName: (format, entryName) =>
+        `${entryName}.${format === 'es' ? 'mjs' : 'cjs'}`,
     },
     rollupOptions: {
       external: [
@@ -34,7 +43,7 @@ export default defineConfig({
         },
       },
     },
-    sourcemap: false, // 生产构建关闭 sourcemap，显著减小 dist 体积（约减半）
+    sourcemap: false,
   },
   worker: {
     format: 'es',

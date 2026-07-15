@@ -52,6 +52,8 @@ export interface I18nMessages {
     preview: string;
     closePreview: string;
     svgInvalid: string;
+    /** Apply fenced code to host (e.g. coding agent) */
+    applyCode: string;
   };
   // TOC
   toc: {
@@ -116,6 +118,7 @@ const zhCN: I18nMessages = {
     preview: '预览',
     closePreview: '关闭',
     svgInvalid: '无法解析或包含不安全内容的 SVG',
+    applyCode: '应用',
   },
   toc: {
     title: '目录',
@@ -178,6 +181,7 @@ const enUS: I18nMessages = {
     preview: 'Preview',
     closePreview: 'Close',
     svgInvalid: 'Invalid or unsafe SVG',
+    applyCode: 'Apply',
   },
   toc: {
     title: 'Table of Contents',

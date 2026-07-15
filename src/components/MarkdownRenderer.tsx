@@ -6,23 +6,20 @@ import React, {
   useCallback,
   memo,
 } from 'react';
-import { createProcessor, type ProcessorOptions } from '../core/processor';
+import { createProcessor, type ProcessorOptions, resolveProcessorOptionsForRender, processorOptionsCacheKey } from '../core/processor';
 import { renderMermaidDiagram } from '../core/plugins/mermaid-renderer';
 import type { TocItem } from '../core/plugins/toc-generator';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { copyToClipboard } from '../utils/clipboard';
 import { triggerCodeDownload } from '../core/utils/code-download';
 import { sanitizeSvgMarkup } from '../core/utils/svg-sanitize';
-import { RenderCache, splitHtmlBlocks } from '../core/performance';
+import { sharedRenderCache, splitHtmlBlocks } from '../core/performance';
 import {
   useTheme,
   type ThemeMode,
   resolveThemeClass,
 } from '../context/MarkdownProvider';
 import { useLocale } from '../context/MarkdownProvider';
-
-// 模块级单例缓存
-const rendererCache = new RenderCache(200, 120_000);
 
 // 大文档阈值（字节），超过后启用分块渲染
 const LARGE_DOC_THRESHOLD = 50_000;
@@ -32,6 +29,16 @@ const ICON_COPY = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14
 const ICON_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 const ICON_DOWNLOAD = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>';
 const ICON_EYE = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>';
+
+/** Info passed when the user clicks Apply on a fenced code block. */
+export interface CodeBlockInfo {
+  /** Source code (inner text of the fenced block). */
+  code: string;
+  /** Language id from `data-language`, if any. */
+  language?: string;
+  /** Optional filename from fence meta (`filename=` / `file:`). */
+  filename?: string;
+}
 
 // ============================================================
 // Props 接口
@@ -57,8 +64,19 @@ export interface MarkdownRendererProps {
   onLinkClick?: (href: string, event: React.MouseEvent) => void;
   /** 图片点击（可用于 Lightbox） */
   onImageClick?: (src: string, alt: string, event: React.MouseEvent) => void;
-  /** 自定义渲染器映射 */
+  /**
+   * @deprecated Not implemented — the HTML pipeline uses `dangerouslySetInnerHTML`,
+   * so React tag overrides cannot be applied. The value is ignored. Prefer
+   * `onApplyCode`, `onLinkClick`, or processor options.
+   */
   components?: Partial<ComponentMap>;
+  /**
+   * When provided, an Apply button is shown on fenced code blocks (after streaming ends).
+   * Used by coding agents to insert / replace code in the host editor.
+   */
+  onApplyCode?: (info: CodeBlockInfo) => void;
+  /** Label for the Apply button. Defaults to i18n `renderer.applyCode`. */
+  applyLabel?: string;
   /** 是否正在接收流式内容 */
   streaming?: boolean;
   /** 流式结束回调 */
@@ -120,6 +138,8 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
     onRendered,
     onLinkClick,
     onImageClick,
+    onApplyCode,
+    applyLabel,
     streaming = false,
     onStreamEnd,
     height,
@@ -139,15 +159,33 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
 
     const containerRef = useRef<HTMLDivElement>(null);
     const prevStreamingRef = useRef(streaming);
-    /** 流式时也保留短 debounce（至少 50ms），合并高频更新以减少闪烁 */
+    const onApplyCodeRef = useRef(onApplyCode);
+    onApplyCodeRef.current = onApplyCode;
+    const showApply = Boolean(onApplyCode);
+    /**
+     * Streaming keeps a short debounce (at least 50ms) to coalesce high-frequency
+     * token updates and reduce flicker. It does NOT bypass debounce entirely.
+     */
     const effectiveDebounce = streaming ? Math.max(50, debounceMs) : debounceMs;
     const debouncedSource = useDebouncedValue(source, effectiveDebounce);
 
-    // 创建处理器（memoized）
-    const processor = useMemo(
-      () => createProcessor(options),
+    // Streaming: cheap pipeline (no Shiki / Mermaid fence transform).
+    // Stream end: full pipeline with caller options restored.
+    const effectiveOptions = useMemo(
+      () => resolveProcessorOptionsForRender(options, streaming),
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [JSON.stringify(options)],
+      [JSON.stringify(options), streaming],
+    );
+    const optionsKey = useMemo(
+      () => processorOptionsCacheKey(effectiveOptions),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [JSON.stringify(effectiveOptions)],
+    );
+
+    const processor = useMemo(
+      () => createProcessor(effectiveOptions),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [JSON.stringify(effectiveOptions)],
     );
 
     // ========================================
@@ -167,17 +205,30 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
         setError(null);
 
         try {
-          // 尝试命中缓存（仅 html；TOC 仍需从管道获取）
-          const cached = rendererCache.get(debouncedSource);
+          // Skip cache while streaming (partial content) or when options are non-serializable
+          const canCache = !streaming && optionsKey !== null;
+          if (canCache) {
+            const cached = sharedRenderCache.getEntry(debouncedSource, optionsKey);
+            if (cached) {
+              if (cancelled) return;
+              setHtml(cached.html);
+              setToc(cached.toc);
+              onRendered?.({ html: cached.html, toc: cached.toc });
+              setIsLoading(false);
+              return;
+            }
+          }
 
-          // 1. 渲染 HTML（TOC 由 remarkExtractToc 插件写入 vfile.data.toc）
           const result = await processor.process(debouncedSource);
           if (cancelled) return;
-          const renderedHtml = cached ?? String(result);
+          const renderedHtml = String(result);
           const tocData = (result.data?.toc as TocItem[]) ?? [];
 
-          if (!cached) {
-            rendererCache.set(debouncedSource, renderedHtml);
+          if (canCache) {
+            sharedRenderCache.setEntry(debouncedSource, optionsKey, {
+              html: renderedHtml,
+              toc: tocData,
+            });
           }
 
           setHtml(renderedHtml);
@@ -197,13 +248,13 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
         cancelled = true;
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedSource, processor]);
+    }, [debouncedSource, processor, streaming, optionsKey]);
 
     // ========================================
-    // Mermaid 图表后处理
+    // Mermaid 图表后处理（流式期间跳过，避免半截语法反复 parse）
     // ========================================
     useEffect(() => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || streaming) return;
 
       const mermaidContainers =
         containerRef.current.querySelectorAll('.mermaid-container');
@@ -216,7 +267,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
         const svg = await renderMermaidDiagram(code, `mermaid-${index}`);
         el.innerHTML = svg;
       });
-    }, [html]);
+    }, [html, streaming]);
 
     // ========================================
     // SVG 代码块预览（```svg / ```xml + SVG）
@@ -277,7 +328,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
     }, [html, streaming, messages.renderer]);
 
     // ========================================
-    // 代码块按钮注入 (复制 / 下载 / 预览)
+    // 代码块按钮注入 (复制 / 下载 / 预览 / 应用)
     // 仅在流式结束后注入，避免 SSE 追加 token 渲染过程中误注入或闪烁
     // ========================================
     useEffect(() => {
@@ -285,16 +336,21 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
 
       const codeBlocks = containerRef.current.querySelectorAll('.code-block');
       codeBlocks.forEach((block) => {
-        if (block.querySelector('.code-block-actions')) return;
+        block.querySelector('.code-block-actions')?.remove();
 
         const lang = (block.getAttribute('data-language') ?? '').toLowerCase();
-        const code = block.querySelector('code')?.textContent ?? '';
+        const code =
+          block.querySelector('code')?.textContent ??
+          // Shiki sometimes nests differently; fall back to block text without actions
+          (block.textContent ?? '');
         const metaFilename = block.getAttribute('data-filename') ?? undefined;
+        const applyText = applyLabel ?? messages.renderer.applyCode;
 
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'code-block-actions';
 
         const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
         copyBtn.className = 'copy-button';
         copyBtn.innerHTML = ICON_COPY;
         copyBtn.title = messages.renderer.copyCode;
@@ -306,6 +362,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
         actionsDiv.appendChild(copyBtn);
 
         const downloadBtn = document.createElement('button');
+        downloadBtn.type = 'button';
         downloadBtn.className = 'download-button';
         downloadBtn.innerHTML = ICON_DOWNLOAD;
         downloadBtn.title = messages.renderer.download;
@@ -316,6 +373,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
 
         if (lang === 'html') {
           const previewBtn = document.createElement('button');
+          previewBtn.type = 'button';
           previewBtn.className = 'preview-button';
           previewBtn.innerHTML = ICON_EYE;
           previewBtn.title = messages.renderer.preview;
@@ -325,10 +383,28 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>(
           actionsDiv.appendChild(previewBtn);
         }
 
+        if (showApply) {
+          const applyBtn = document.createElement('button');
+          applyBtn.type = 'button';
+          applyBtn.className = 'apply-button';
+          applyBtn.textContent = applyText;
+          applyBtn.title = applyText;
+          applyBtn.addEventListener('click', () => {
+            onApplyCodeRef.current?.({
+              code,
+              language: lang || undefined,
+              filename: metaFilename,
+            });
+            applyBtn.textContent = `${applyText} ✓`;
+            applyBtn.disabled = true;
+          });
+          actionsDiv.appendChild(applyBtn);
+        }
+
         (block as HTMLElement).style.position = 'relative';
         block.appendChild(actionsDiv);
       });
-    }, [html, messages.renderer, streaming]);
+    }, [html, messages.renderer, streaming, applyLabel, showApply]);
 
     // ========================================
     // Streaming: onStreamEnd + auto-scroll

@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { createProcessor, type ProcessorOptions } from '../core/processor';
+import {
+  createProcessor,
+  processorOptionsCacheKey,
+  type ProcessorOptions,
+} from '../core/processor';
 import type { TocItem } from '../core/plugins/toc-generator';
 import { useDebouncedValue } from './useDebouncedValue';
-import { RenderCache } from '../core/performance';
-
-// 模块级单例缓存，所有 useMarkdown 实例共享
-const globalCache = new RenderCache(200, 120_000);
+import { sharedRenderCache } from '../core/performance';
 
 export interface UseMarkdownResult {
   html: string;
@@ -44,6 +45,12 @@ export function useMarkdown(
   const cacheRef = useRef(enableCache);
   cacheRef.current = enableCache;
 
+  const optionsKey = useMemo(
+    () => processorOptionsCacheKey(processorOptions),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(processorOptions)],
+  );
+
   const processor = useMemo(
     () => createProcessor(processorOptions),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -52,45 +59,57 @@ export function useMarkdown(
 
   useEffect(() => {
     let cancelled = false;
-    setIsLoading(true);
-    setError(null);
 
-    // 尝试命中缓存
-    if (cacheRef.current) {
-      const cached = globalCache.get(debouncedSource);
-      if (cached !== null) {
-        setHtml(cached);
-        // 缓存命中时仍需提取 TOC（轻量操作）
-        // TOC 从管道获取，但缓存只存 html，所以需要再跑一次 AST 提取
-        // 这里仍走管道以获取 vfile.data.toc
+    async function render() {
+      if (!debouncedSource.trim()) {
+        setHtml('');
+        setToc([]);
+        return;
       }
-    }
 
-    processor
-      .process(debouncedSource)
-      .then((result: any) => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const canCache = cacheRef.current && optionsKey !== null;
+        if (canCache) {
+          const cached = sharedRenderCache.getEntry(debouncedSource, optionsKey);
+          if (cached) {
+            if (cancelled) return;
+            setHtml(cached.html);
+            setToc(cached.toc);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        const result = await processor.process(debouncedSource);
         if (cancelled) return;
         const renderedHtml = String(result);
         const tocData = (result.data?.toc as TocItem[]) ?? [];
         setHtml(renderedHtml);
         setToc(tocData);
-        if (cacheRef.current) {
-          globalCache.set(debouncedSource, renderedHtml);
+        if (canCache) {
+          sharedRenderCache.setEntry(debouncedSource, optionsKey, {
+            html: renderedHtml,
+            toc: tocData,
+          });
         }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled)
+      } catch (err: unknown) {
+        if (!cancelled) {
           setError(err instanceof Error ? err : new Error(String(err)));
-      })
-      .finally(() => {
+        }
+      } finally {
         if (!cancelled) setIsLoading(false);
-      });
+      }
+    }
 
+    void render();
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSource, processor, version]);
+  }, [debouncedSource, processor, version, optionsKey]);
 
   return {
     html,

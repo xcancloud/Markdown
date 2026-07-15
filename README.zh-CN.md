@@ -47,17 +47,18 @@
 - **Mermaid** — 流程图、时序图、甘特图、类图等（客户端懒加载渲染）
 - **SVG 预览** — 围栏代码块 ` ```svg ` 或内容为 SVG 的 ` ```xml ` 经净化后**内联预览**（非流式时支持复制 / 下载）
 - **富文本编辑器** — CodeMirror 6、工具栏、分栏 / 标签布局、图片与文件粘贴 / 拖拽 / 上传、自动保存、快捷键
-- **代码块体验** — 复制、下载（按语言扩展名；可通过 `file:` 或注释元信息指定文件名）、HTML 沙箱预览
+- **代码块体验** — 复制、下载（按语言扩展名；可通过 `file:` 或注释元信息指定文件名）、HTML 沙箱预览；可选 **Apply**（`onApplyCode`，面向 Coding Agent）
+- **Chat 预设** — 可选 `CHAT_PROCESSOR_OPTIONS` / `createStreamingProcessor`（不改库默认）
 - **GFM 提示与容器** — `> [!NOTE]` / `> [!WARNING]` 与 `:::tip` / `:::warning` 等指令
 - **目录侧栏** — 自动生成大纲并跟踪当前标题（`MarkdownRenderer`）
 - **Front Matter** — 通过 remark-frontmatter 解析 YAML / TOML 元数据
 - **Emoji** — `:smile:` 简写（remark-emoji）
 - **安全** — rehype-sanitize 配置、URL 处理、面向 XSS 的默认策略
 - **无障碍** — rehype a11y 辅助、面向 ARIA 的输出
-- **流式渲染** — `streaming` 属性适配 SSE / 分块内容（跳过防抖、光标提示）
+- **流式渲染** — `streaming` 属性适配 SSE / 分块内容（短防抖合并更新、流式期间跳过 Shiki/Mermaid、结束后全量高亮、光标提示）
 - **主题** — 浅色 / 深色 / 跟随系统亮暗模式 + `ThemeVariant` 皮肤体系（Default / Angus / GitHub / Claude）；全面采用 CSS 变量
 - **国际化** — 内置 `en-US`、`zh-CN`
-- **双构建** — ESM + CJS、TypeScript 声明、可按需 tree-shaking 的入口
+- **双构建** — ESM + CJS、TypeScript 声明；支持 `@xcan-cloud/markdown/viewer|renderer|editor` 子路径按需引入
 
 ## 快速开始
 
@@ -80,7 +81,59 @@ import '@xcan-cloud/markdown/styles';
 ```
 
 > 这一行已同时包含渲染器与编辑器所需的全部基础样式。
-> 主题预设（GitHub、Angus）需单独引入，详见[自定义](#自定义)。
+> 主题预设（GitHub、Claude）可按需引入，详见[自定义](#自定义)。
+>
+> 若只需查看 / 渲染（不含编辑器），推荐：
+> ```tsx
+> import '@xcan-cloud/markdown/styles/renderer';
+> // 或编辑器：
+> import '@xcan-cloud/markdown/styles/editor';
+> ```
+
+### 子路径入口（按需体积）
+
+| 入口 | 适用场景 | CodeMirror |
+| --- | --- | --- |
+| `@xcan-cloud/markdown` | 全量（兼容旧用法） | 会打入依赖图 |
+| `@xcan-cloud/markdown/viewer` | 轻量预览 / SSR | 否 |
+| `@xcan-cloud/markdown/renderer` | 流式渲染、TOC、Mermaid、代码操作 | 否 |
+| `@xcan-cloud/markdown/editor` | 富文本编辑（含预览） | 是 |
+
+```tsx
+// Chat / 只读预览 —— 不拉 CodeMirror
+import { MarkdownRenderer, MarkdownProvider } from '@xcan-cloud/markdown/renderer';
+import '@xcan-cloud/markdown/styles/renderer';
+```
+
+### Chat 气泡推荐用法
+
+```tsx
+import {
+  MarkdownRenderer,
+  CHAT_PROCESSOR_OPTIONS,
+  CHAT_RENDERER_DEFAULTS,
+  type CodeBlockInfo,
+} from '@xcan-cloud/markdown/renderer';
+import '@xcan-cloud/markdown/styles/renderer';
+
+function ChatBubble({ md, streaming, onApply }: {
+  md: string;
+  streaming: boolean;
+  onApply?: (info: CodeBlockInfo) => void;
+}) {
+  return (
+    <MarkdownRenderer
+      source={md}
+      streaming={streaming}
+      options={CHAT_PROCESSOR_OPTIONS}
+      {...CHAT_RENDERER_DEFAULTS}
+      onApplyCode={onApply}
+    />
+  );
+}
+```
+
+> `CHAT_*` 预设为**可选**；不会改变 `createProcessor` / `showToc` 等库默认值。
 
 ### 基础渲染
 
@@ -160,12 +213,14 @@ function Page({ markdown }: { markdown: string }) {
 | `theme` | `'light' \| 'dark' \| 'auto'` | 来自上下文 / `'auto'` | 配色模式 |
 | `showToc` | `boolean` | `true` | 是否显示目录侧栏 |
 | `tocPosition` | `'left' \| 'right'` | `'right'` | 目录位置 |
-| `debounceMs` | `number` | `150` | 渲染防抖（`streaming` 为 true 时不使用） |
+| `debounceMs` | `number` | `150` | 渲染防抖；`streaming` 为 true 时仍启用，且不低于 50ms（合并高频 token） |
 | `onRendered` | `(info: { html: string; toc: TocItem[] }) => void` | — | 渲染成功回调 |
 | `onLinkClick` | `(href: string, event: MouseEvent) => void` | — | 链接点击拦截 |
 | `onImageClick` | `(src: string, alt: string, event: MouseEvent) => void` | — | 图片点击 |
-| `components` | `Partial<Record<string, ComponentType<any>>>` | — | 自定义 HTML 标签映射 |
-| `streaming` | `boolean` | `false` | 是否处于流式接收 |
+| `components` | `Partial<Record<string, ComponentType<any>>>` | — | **已弃用 / 无效**：HTML 管道无法映射 React 组件，传入会被忽略 |
+| `onApplyCode` | `(info: CodeBlockInfo) => void` | — | 提供后在代码块显示「应用」按钮（流式结束后注入） |
+| `applyLabel` | `string` | i18n `applyCode` | 「应用」按钮文案 |
+| `streaming` | `boolean` | `false` | 流式接收：关 Shiki/Mermaid fence 变换以降低成本；结束后自动全量重渲 |
 | `onStreamEnd` | `() => void` | — | `streaming` 从 `true` 变为 `false` 时触发 |
 | `height` | `string` | — | 渲染容器固定高度 |
 | `minHeight` | `string` | — | 渲染容器最小高度 |
@@ -232,6 +287,12 @@ function Page({ markdown }: { markdown: string }) {
 ### TypeScript（核心 Props）
 
 ```tsx
+interface CodeBlockInfo {
+  code: string;
+  language?: string;
+  filename?: string;
+}
+
 interface MarkdownRendererProps {
   source: string;
   options?: ProcessorOptions;
@@ -243,7 +304,10 @@ interface MarkdownRendererProps {
   onRendered?: (info: { html: string; toc: TocItem[] }) => void;
   onLinkClick?: (href: string, event: React.MouseEvent) => void;
   onImageClick?: (src: string, alt: string, event: React.MouseEvent) => void;
+  /** @deprecated ignored — HTML pipeline cannot map React components */
   components?: Partial<Record<string, React.ComponentType<any>>>;
+  onApplyCode?: (info: CodeBlockInfo) => void;
+  applyLabel?: string;
   streaming?: boolean;
   onStreamEnd?: () => void;
   height?: string;
@@ -258,7 +322,7 @@ interface MarkdownRendererProps {
 | --- | --- | --- | --- |
 | `gfm` | `boolean` | `true` | GitHub 风格 Markdown |
 | `math` | `boolean` | `true` | KaTeX |
-| `mermaid` | `boolean` | `true` | Mermaid 代码块 |
+| `mermaid` | `boolean` | `true` | Mermaid 代码块（`false` 时不改写为 mermaid-container） |
 | `frontmatter` | `boolean` | `true` | YAML/TOML 前言 |
 | `emoji` | `boolean` | `true` | Emoji 简写 |
 | `toc` | `boolean` | `false` | `[[toc]]` / `[toc]` 占位替换 |
@@ -274,7 +338,8 @@ interface MarkdownRendererProps {
 
 | 导出 | 说明 |
 | --- | --- |
-| `createProcessor`, `renderMarkdown`, `renderMarkdownSync`, `parseToAst` | 核心 unified 流水线 |
+| `createProcessor`, `renderMarkdown`, `renderMarkdownSync`, `parseToAst`, `resolveProcessorOptionsForRender`, `processorOptionsCacheKey` | 核心 unified 流水线与渲染辅助 |
+| `CHAT_PROCESSOR_OPTIONS`, `STREAMING_PROCESSOR_OPTIONS`, `CHAT_RENDERER_DEFAULTS`, `createChatProcessor`, `createStreamingProcessor` | Chat / 流式预设（**不改** `createProcessor` 默认） |
 | `ProcessorOptions` | 流水线配置类型 |
 | `rehypeHighlightCode` | Shiki 高亮 rehype 插件 |
 | `renderMermaidDiagram`, `initMermaid` | 客户端 Mermaid 辅助 |
@@ -283,7 +348,7 @@ interface MarkdownRendererProps {
 | `parseCodeMeta`, `extractCodeBlocks`, `CodeBlockMeta` | 围栏属性解析 |
 | `sanitizeUrl`, `processExternalLinks`, `escapeHtml` | 安全相关工具 |
 | `rehypeA11y` | 无障碍 rehype 插件 |
-| `MarkdownWorkerRenderer`, `RenderCache`, `splitHtmlBlocks` | Worker / 分块缓存 |
+| `MarkdownWorkerRenderer`, `RenderCache`, `sharedRenderCache`, `splitHtmlBlocks` | Worker / 分块缓存 |
 | `copyToClipboard` | 剪贴板 |
 | `performImageUpload`、`performFileUpload`、`createImageUploadLifecycle`、`createFileUploadLifecycle`、`encodeMarkdownUrl`、`sanitizeAltText`、`isImageFile`、`collectImageFiles`、`generateUploadId` | 图片 / 文件粘贴 / 拖拽 / 上传工具（详见 [文件与图片上传](#文件与图片上传)） |
 | `slug`, `resetSlugger` | 标题 slug |

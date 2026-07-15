@@ -1,0 +1,6 @@
+/**
+ * Editor + renderer styles (split / tabs preview needs both).
+ * Prefer this when using `MarkdownEditor`.
+ */
+@import './renderer.css';
+@import './markdown-editor.css';

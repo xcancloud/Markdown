@@ -1,0 +1,7 @@
+/**
+ * Renderer styles only (no CodeMirror / editor chrome).
+ * Angus theme is included (library defaultVariant).
+ * GitHub / Claude: import `@xcan-cloud/markdown/themes/github.css` etc. separately.
+ */
+@import './markdown-renderer.css';
+@import './themes/angus.css';
